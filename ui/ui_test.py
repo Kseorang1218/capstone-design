@@ -41,8 +41,8 @@ def main():
     title_font, info_font = setup_fonts()
 
     # 정보 데이터 정의
-    dehumid_info = {"온도": "25°C", "습도": "40%", "상태": "대기중"}
-    dry_info = {"온도": "35°C", "습도": "20%", "상태": "건조중", "신발 종류": "운동화"}
+    dehumid_info = {"temp": "25°C", "humid": "40%", "status": "대기중"}
+    dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화"}
 
     # 제습 섹션 구성
     dehumid_frame = create_section_frame(window, "lightblue")
