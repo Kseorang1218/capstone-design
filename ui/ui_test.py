@@ -5,14 +5,11 @@ import serial
 import json
 import threading
 import time
+import re  # 정규 표현식 사용
 
 # 시리얼 통신 설정
 ser = serial.Serial(
-    # if window
-    # port='COM8',  # Arduino가 연결된 포트로 변경 필요
-
-    # if vm
-    port = '/dev/ttyS0',
+    port='COM8',  # 포트를 실제 연결된 COM 포트로 설정
     baudrate=9600,
     timeout=1
 )
@@ -136,10 +133,13 @@ class ShoeCabinetGUI:
                     line = ser.readline().decode('utf-8').strip()
                     print(f"받은 데이터: {line}")  # 데이터가 정상적으로 수신되는지 확인
                     
-                    # 데이터 파싱 (온도와 습도를 쉼표로 구분하여 리스트로 변환)
-                    data = line.split(',')
-                    if len(data) >= 2:
-                        temp, humidity = map(float, data)
+                    # 온도와 습도를 추출하기 위한 정규 표현식
+                    temp_match = re.search(r'Temperature:\s*([0-9.]+)', line)
+                    humid_match = re.search(r'Humidity:\s*([0-9.]+)', line)
+
+                    if temp_match and humid_match:
+                        temp = float(temp_match.group(1))  # 온도 추출
+                        humidity = float(humid_match.group(1))  # 습도 추출
                         
                         # 제습 정보 업데이트
                         self.dehumid_info.update({
