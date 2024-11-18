@@ -1,6 +1,18 @@
 import tkinter as tk
 from tkinter import font
 from PIL import Image, ImageTk
+import serial
+import json
+import threading
+import time
+import re  # 정규 표현식 사용
+
+# 시리얼 통신 설정
+ser = serial.Serial(
+    port='COM8',  # 포트를 실제 연결된 COM 포트로 설정
+    baudrate=9600,
+    timeout=1
+)
 
 # 스타일 설정
 COLORS = {
@@ -30,6 +42,10 @@ class ShoeCabinetGUI:
         # 프레임 생성
         self.dehumid_frame = self.make_dehumid_frame()
         self.dry_frame = self.make_dry_frame()
+        
+        # 데이터 업데이트 쓰레드 시작
+        self.update_thread = threading.Thread(target=self.update_data, daemon=True)
+        self.update_thread.start()
 
     def setup_window(self):
         window = tk.Tk()
@@ -108,6 +124,40 @@ class ShoeCabinetGUI:
         # 건조 영역 라벨 업데이트
         for key, label in self.dry_labels.items():
             label.config(text=f"{key}: {self.dry_info[key]}")
+
+    def update_data(self):
+        while True:
+            try:
+                if ser.in_waiting > 0:  # 시리얼 데이터가 들어오면
+                    # 시리얼 데이터 한 줄 읽기
+                    line = ser.readline().decode('utf-8').strip()
+                    print(f"받은 데이터: {line}")  # 데이터가 정상적으로 수신되는지 확인
+                    
+                    # 온도와 습도를 추출하기 위한 정규 표현식
+                    temp_match = re.search(r'Temperature:\s*([0-9.]+)', line)
+                    humid_match = re.search(r'Humidity:\s*([0-9.]+)', line)
+
+                    if temp_match and humid_match:
+                        temp = float(temp_match.group(1))  # 온도 추출
+                        humidity = float(humid_match.group(1))  # 습도 추출
+                        
+                        # 제습 정보 업데이트
+                        self.dehumid_info.update({
+                            "temp": f"{temp:.1f}°C",  # 소수점 첫째자리까지 표시
+                            "humid": f"{humidity:.1f}%",  # 소수점 첫째자리까지 표시
+                            "status": "동작중" if temp >= 18 else "대기중"
+                        })
+                        
+                        # GUI 업데이트 (메인 쓰레드에서 실행)
+                        self.window.after(0, self.update_labels)  # 메인 쓰레드에서 실행
+                    else:
+                        print("잘못된 데이터 형식")
+
+                time.sleep(0.1)  # CPU 사용량 감소를 위한 짧은 대기
+
+            except Exception as e:
+                print(f"데이터 업데이트 오류: {e}")
+                time.sleep(1)
 
 
     def run(self):
