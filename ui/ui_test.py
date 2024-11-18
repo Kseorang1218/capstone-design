@@ -25,14 +25,10 @@ class ShoeCabinetGUI:
         
         # 데이터 초기화
         self.dehumid_info = {"temp": "25°C", "humid": "40%"}
-        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 10}  # 7200초 = 2시간
+        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 5}  # 10초로 설정해서 테스트
         
-        # 프레임 생성
-        self.dehumid_frame = self.make_dehumid_frame()
-        self.dry_frame = self.make_dry_frame()
-        
-        # 1초마다 update_dry_time 실행
-        self.update_dry_time()
+        # 시작 버튼 생성
+        self.create_start_button()
 
     def setup_window(self):
         window = tk.Tk()
@@ -132,7 +128,42 @@ class ShoeCabinetGUI:
             self.dry_labels["status"].config(text=f"상태: {self.dry_info['status']}")
             
             # 건조 완료 메시지 팝업
-            messagebox.showinfo("건조 완료", "건조가 끝났습니다!")
+            self.show_drying_complete_message()
+
+    def show_drying_complete_message(self):
+        """건조 완료 메시지 팝업"""
+        messagebox.showinfo("건조 완료", "건조가 끝났습니다!", icon='info')
+        # 건조 완료 후, reset_app 호출
+        self.reset_app()
+
+    def create_start_button(self):
+        """Start 버튼을 만들고 버튼 클릭 시 GUI 시작"""
+        start_button = tk.Button(self.window, text="Start", font=self.info_font, command=self.start_app)
+        start_button.pack(pady=20)
+
+    def start_app(self):
+        """Start 버튼 클릭 후 GUI 시작"""
+        # "Start" 버튼을 숨기고, 제습/건조 프레임을 표시
+        self.dehumid_frame = self.make_dehumid_frame()
+        self.dry_frame = self.make_dry_frame()
+        
+        # Start 버튼 제거
+        for widget in self.window.winfo_children():
+            if isinstance(widget, tk.Button):
+                widget.destroy()
+        
+        # 업데이트 시작
+        self.update_dry_time()
+
+    def reset_app(self):
+        """건조 완료 후 앱을 초기화하고 Start 버튼 화면으로 돌아가기"""
+        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 5}
+        
+        # 모든 프레임을 제거하고 "Start" 버튼만 보이게 함
+        for widget in self.window.winfo_children():
+            widget.destroy()
+        
+        self.create_start_button()
 
     def update_labels(self):
         # 제습 영역 라벨 업데이트
