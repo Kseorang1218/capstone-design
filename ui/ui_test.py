@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import font
+from tkinter import font, messagebox
 from PIL import Image, ImageTk
 
 # 스타일 설정
@@ -25,7 +25,7 @@ class ShoeCabinetGUI:
         
         # 데이터 초기화
         self.dehumid_info = {"temp": "25°C", "humid": "40%"}
-        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 7200}  # 7200초 = 2시간
+        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 10}  # 7200초 = 2시간
         
         # 프레임 생성
         self.dehumid_frame = self.make_dehumid_frame()
@@ -61,7 +61,7 @@ class ShoeCabinetGUI:
         
         # 제목 라벨
         self.create_label(frame, "제습", COLORS["dehumid_bg"], self.title_font, 
-                         COLORS["dehumid_fg"], 'center', PADDINGS["title"])
+                         COLORS["dehumid_fg"], 'center', PADDINGS["title"] )
         
         # 정보 라벨들
         for key in self.dehumid_info.keys():
@@ -130,6 +130,9 @@ class ShoeCabinetGUI:
         else:
             self.dry_info["status"] = "건조 완료"
             self.dry_labels["status"].config(text=f"상태: {self.dry_info['status']}")
+            
+            # 건조 완료 메시지 팝업
+            messagebox.showinfo("건조 완료", "건조가 끝났습니다!")
 
     def update_labels(self):
         # 제습 영역 라벨 업데이트
