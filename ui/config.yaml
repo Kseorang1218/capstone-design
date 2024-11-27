@@ -5,9 +5,9 @@ colors:
   dry_bg: "lightcoral"
   dry_fg: "darkred"
   dry_text_fg: "maroon"
-  # bg: "#f5f5f5"
-  # button_bg: "skyblue"  # 버튼 배경색
-  # button_fg: "white"     # 버튼 글자색
+  bg: "#f5f5f5"
+  button_bg: "skyblue"  # 버튼 배경색
+  button_fg: "white"     # 버튼 글자색
   
 paddings:
   title:

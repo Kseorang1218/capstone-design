@@ -31,18 +31,20 @@ class ShoeCabinetGUI:
     def setup_window(self):
         window = tk.Tk()
         window.title("신발장 상태")
-        window.geometry("500x320")
+        window.geometry("600x350")
+        window.config(bg=self.config.colors["bg"])  # 전체 배경색 설정
         return window
 
     def setup_fonts(self):
-        title_font = font.Font(family="Helvetica", size=14, weight="bold")
-        info_font = font.Font(family="Arial", size=10)
+        title_font = font.Font(family="Helvetica", size=16, weight="bold")
+        info_font = font.Font(family="Arial", size=12)
         return title_font, info_font
 
     def create_start_button(self):
         """Start 버튼을 만들고 버튼 클릭 시 GUI 시작"""
-        start_button = tk.Button(self.window, text="Start", font=self.info_font, command=self.start_app)
-        start_button.pack(pady=20)
+        start_button = tk.Button(self.window, text="Start", font=self.info_font, command=self.start_app,
+                                 relief="solid", bg=self.config.colors["button_bg"], fg=self.config.colors["button_fg"])
+        start_button.pack(pady=30)
 
     def make_dehumid_frame(self):
         frame = SectionFrame(self.window, self.config.colors["dehumid_bg"], "left")
@@ -62,11 +64,9 @@ class ShoeCabinetGUI:
         frame = SectionFrame(self.window, self.config.colors["dry_bg"], "right")
         self.dry_labels = {}
         
-        # 제목 라벨
         frame.add_label("건조", self.config.colors["dry_bg"], self.title_font,
                         self.config.colors["dry_fg"], 'center', self.config.paddings["title"])
         
-        # 정보 라벨들
         for key, value in self.dry_info.items():
             if key != "remaining_time":
                 self.dry_labels[key] = frame.add_label(f"{key}: {value}", 
@@ -74,18 +74,16 @@ class ShoeCabinetGUI:
                                                        self.config.colors["dry_text_fg"], "e", 
                                                        self.config.paddings["label_right"])
         
-        # 건조 완료 시간 라벨
         self.dry_labels["remaining_time_display"] = frame.add_label(
             f"남은 시간: {self.format_time(self.dry_info['remaining_time'])}",
             self.config.colors["dry_bg"], self.info_font,
             self.config.colors["dry_text_fg"], "e", self.config.paddings["label_right"]
         )
-            
-        # 이미지 추가
+
         self.add_image_to_frame(frame.frame)
         return frame.frame
 
-    def add_image_to_frame(self, frame, size=(60, 60), padding=(70, 0)):
+    def add_image_to_frame(self, frame, size=(80, 80), padding=(70, 0)):
         try:
             image = Image.open(self.config.shoes_pic_path)
             image = image.resize(size, Image.LANCZOS)
