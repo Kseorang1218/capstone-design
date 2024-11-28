@@ -31,7 +31,7 @@ class ShoeCabinetGUI:
     def setup_window(self):
         window = tk.Tk()
         window.title("신발장 상태")
-        window.geometry("600x350")
+        window.geometry("800x600")
         window.config(bg=self.config.colors["bg"])  # 전체 배경색 설정
         return window
 
