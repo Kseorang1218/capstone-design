@@ -9,7 +9,7 @@ import re  # 정규 표현식 사용
 
 # 시리얼 통신 설정
 ser = serial.Serial(
-    port='COM8',  # 포트를 실제 연결된 COM 포트로 설정
+    port='/dev/ttyACM0',  # 아두이노가 연결된 포트
     baudrate=9600,
     timeout=1
 )
