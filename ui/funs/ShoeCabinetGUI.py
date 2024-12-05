@@ -6,15 +6,32 @@ from PIL import Image, ImageTk
 
 class SectionFrame:
     """GUI의 각 구역을 구성하는 프레임 클래스"""
-    def __init__(self, parent, bg_color, side, width=250, height=300):
-        self.frame = tk.Frame(parent, bg=bg_color, width=width, height=height)
-        self.frame.pack(side=side, fill="both", expand=True)
-        self.frame.grid_propagate(False)  # 내부 위젯이 크기 조정되지 않도록 설정
+    def __init__(self, parent, top_color, bg_color="white", top_height=50, width=250, height=300):
+        # 전체 프레임
+        self.frame = tk.Frame(parent, width=width, height=height, bg=bg_color)
+        self.frame.pack(side="top", fill="both", expand=True)
+        self.frame.grid_propagate(False)
 
-    def add_label(self, text, bg, font, fg, anchor, padding, width=None):
-        label = tk.Label(self.frame, text=text, bg=bg, font=font, fg=fg, anchor=anchor, width=width)
+        # 상단 프레임 (색상은 외부에서 전달받음)
+        self.top_frame = tk.Frame(self.frame, height=top_height, bg=top_color)
+        self.top_frame.pack(side="top", fill="x")
+
+        # 하단 프레임 (기본적으로 흰색 배경)
+        self.bottom_frame = tk.Frame(self.frame, bg=bg_color)
+        self.bottom_frame.pack(side="top", fill="both", expand=True)
+
+    def add_label_to_bottom(self, text, font, fg, anchor, padding):
+        """하단 영역에 라벨 추가"""
+        label = tk.Label(self.bottom_frame, text=text, bg=self.bottom_frame["bg"], font=font, fg=fg, anchor=anchor)
         label.pack(pady=padding[0], padx=padding[1], fill="x")
         return label
+
+    def add_label_to_top(self, text, font, fg, anchor, padding):
+        """상단 영역에 라벨 추가 (배경색도 설정된 상태에서 텍스트를 배치)"""
+        label = tk.Label(self.top_frame, text=text, font=font, fg=fg, anchor=anchor, bg=self.top_frame["bg"])
+        label.pack(pady=padding[0], padx=padding[1], fill="x")
+        return label
+
 
 
 class ShoeCabinetGUI:
@@ -46,42 +63,46 @@ class ShoeCabinetGUI:
                                  relief="solid", bg=self.config.colors["button_bg"], fg=self.config.colors["button_fg"])
         start_button.pack(pady=30)
 
-    def make_dehumid_frame(self):
-        frame = SectionFrame(self.window, self.config.colors["dehumid_bg"], "left")
+    def make_dehumid_frame(self, parent):
+        frame = SectionFrame(parent, top_color=self.config.colors["dehumid_bg"], bg_color="white", top_height=50, width=400, height=300)
         self.dehumid_labels = {}
         
-        frame.add_label("제습", self.config.colors["dehumid_bg"], self.title_font, 
-                        self.config.colors["dehumid_fg"], 'center', self.config.paddings["title"])
+        frame.add_label_to_top("제습", font=self.title_font, fg=self.config.colors["dehumid_fg"],
+                                anchor='center', padding=self.config.paddings["title"])
         
         for key, value in self.dehumid_info.items():
-            self.dehumid_labels[key] = frame.add_label(f"{key}: {value}", 
-                                                       self.config.colors["dehumid_bg"], self.info_font,
-                                                       self.config.colors["dehumid_text_fg"], "w", 
-                                                       self.config.paddings["label_left"])
+            self.dehumid_labels[key] = frame.add_label_to_bottom(
+                f"{key}: {value}", font=self.info_font, fg=self.config.colors["dehumid_text_fg"],
+                anchor="w", padding=self.config.paddings["label_left"]
+            )
+        frame.frame.pack(side="left", fill="both", expand=True)  # 가로 배치 (왼쪽)
         return frame.frame
 
-    def make_dry_frame(self):
-        frame = SectionFrame(self.window, self.config.colors["dry_bg"], "right")
+    def make_dry_frame(self, parent):
+        frame = SectionFrame(parent, top_color=self.config.colors["dry_bg"], bg_color="white", top_height=50, width=400, height=300)
         self.dry_labels = {}
         
-        frame.add_label("건조", self.config.colors["dry_bg"], self.title_font,
-                        self.config.colors["dry_fg"], 'center', self.config.paddings["title"])
+        frame.add_label_to_top("건조", font=self.title_font, fg=self.config.colors["dry_fg"],
+                                anchor='center', padding=self.config.paddings["title"])
         
         for key, value in self.dry_info.items():
             if key != "remaining_time":
-                self.dry_labels[key] = frame.add_label(f"{key}: {value}", 
-                                                       self.config.colors["dry_bg"], self.info_font,
-                                                       self.config.colors["dry_text_fg"], "e", 
-                                                       self.config.paddings["label_right"])
+                self.dry_labels[key] = frame.add_label_to_bottom(
+                    f"{key}: {value}", font=self.info_font, fg=self.config.colors["dry_text_fg"],
+                    anchor="e", padding=self.config.paddings["label_right"]  # 오른쪽 정렬
+                )
         
-        self.dry_labels["remaining_time_display"] = frame.add_label(
+        self.dry_labels["remaining_time_display"] = frame.add_label_to_bottom(
             f"남은 시간: {self.format_time(self.dry_info['remaining_time'])}",
-            self.config.colors["dry_bg"], self.info_font,
-            self.config.colors["dry_text_fg"], "e", self.config.paddings["label_right"]
+            font=self.info_font, fg=self.config.colors["dry_text_fg"],
+            anchor="e", padding=self.config.paddings["label_right"]  # 오른쪽 정렬
         )
-
         self.add_image_to_frame(frame.frame)
+        frame.frame.pack(side="right", fill="both", expand=True)  # 가로 배치 (오른쪽)
         return frame.frame
+
+
+
 
     def add_image_to_frame(self, frame, size=(80, 80), padding=(70, 0)):
         try:
@@ -121,8 +142,13 @@ class ShoeCabinetGUI:
 
     def start_app(self):
         """Start 버튼 클릭 후 GUI 시작"""
-        self.dehumid_frame = self.make_dehumid_frame()
-        self.dry_frame = self.make_dry_frame()
+        # 제습 및 건조 프레임을 담을 컨테이너 프레임
+        container_frame = tk.Frame(self.window, bg=self.config.colors["bg"])
+        container_frame.pack(side="top", fill="both", expand=True)
+
+        # 제습 및 건조 프레임 생성 및 추가
+        self.dehumid_frame = self.make_dehumid_frame(container_frame)
+        self.dry_frame = self.make_dry_frame(container_frame)
 
         # Start 버튼 제거
         for widget in self.window.winfo_children():
@@ -130,6 +156,7 @@ class ShoeCabinetGUI:
                 widget.destroy()
 
         self.update_dry_time()
+
 
     def reset_app(self):
         """건조 완료 후 앱을 초기화하고 Start 버튼 화면으로 돌아가기"""
