@@ -1,8 +1,8 @@
-# ShoeCabinetGUI
-
 import tkinter as tk
 from tkinter import font
 from PIL import Image, ImageTk
+import serial
+import time
 
 class SectionFrame:
     """GUI의 각 구역을 구성하는 프레임 클래스"""
@@ -31,7 +31,7 @@ class SectionFrame:
         label = tk.Label(self.top_frame, text=text, font=font, fg=fg, anchor=anchor, bg=self.top_frame["bg"])
         label.pack(pady=padding[0], padx=padding[1], fill="x")
         return label
-    
+
 
 class ShoeCabinetGUI:
     def __init__(self, config, data_updater):
@@ -42,6 +42,10 @@ class ShoeCabinetGUI:
         self.create_start_button()
         self.image_label = None
         self.current_image = None
+
+        # 시리얼 포트 연결 (아두이노와의 통신)
+        self.serial_port = serial.Serial('/dev/ttyACM0', 9600, timeout=1)  # 'COM3'을 실제 아두이노 포트로 변경
+        time.sleep(2)  # 아두이노와의 초기 통신을 위해 잠시 대기
 
     def setup_window(self):
         window = tk.Tk()
@@ -91,8 +95,20 @@ class ShoeCabinetGUI:
         container_frame.pack(side="top", fill="both", expand=True)
         self.dehumid_frame = self.make_dehumid_frame(container_frame)
         self.dry_frame = self.make_dry_frame(container_frame)
+
+        # 입력칸 추가
+        self.pin_entry_label = tk.Label(self.window, text="Control Pin:", font=self.info_font, bg=self.config.colors["frame_bg"])
+        self.pin_entry_label.pack(pady=10)
+
+        self.pin_entry = tk.Entry(self.window, font=self.info_font)
+        self.pin_entry.pack(pady=10)
+
+        # "보내기" 버튼 추가
+        self.send_button = tk.Button(self.window, text="Send", font=self.info_font, command=self.send_to_arduino)
+        self.send_button.pack(pady=10)
+
         for widget in self.window.winfo_children():
-            if isinstance(widget, tk.Button):
+            if isinstance(widget, tk.Button) and widget != self.send_button:
                 widget.destroy()
 
         self.data_updater.set_update_callbacks(self.update_dehumid_frame, self.update_dry_frame, self.update_image)
@@ -116,7 +132,7 @@ class ShoeCabinetGUI:
         minutes = (seconds % 3600) // 60
         seconds = seconds % 60
         return f"{hours:02}:{minutes:02}:{seconds:02}"
-    
+
     def update_image(self, image_path):
         """이미지 경로가 변경되었을 때 호출되는 콜백"""
         if self.current_image != image_path:
@@ -132,6 +148,16 @@ class ShoeCabinetGUI:
 
             except Exception as e:
                 print(f"이미지를 불러오는 중 오류가 발생했습니다: {e}")
+
+    def send_to_arduino(self):
+        """입력된 값을 아두이노로 전송"""
+        pin = self.pin_entry.get().strip()  # 사용자가 입력한 값
+        if pin.isdigit():
+            pin = int(pin)
+            self.serial_port.write(str(pin).encode())  # 입력한 값을 시리얼로 전송
+            print(f"Sent pin {pin} to Arduino.")
+        else:
+            print("Invalid pin number.")
 
     def run(self):
         self.window.mainloop()
