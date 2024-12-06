@@ -1,14 +1,44 @@
 import threading  
 import time
+import csv
+from datetime import datetime
 
 class UpdateData:
     """시리얼 데이터 업데이트를 관리하는 클래스"""
     def __init__(self, serial_comm, image_path):
         self.serial_comm = serial_comm
         self.dehumid_info = {"temp": "25°C", "humid": "40%"}
-        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 1000}
+        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 999999999}
         self.image_path = image_path  # 이미지 경로 추가
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
+        self.data = {}
+        self.csv_file = "sensor_data_with_peltier.csv"
+        self.init_csv_file()
+
+    def init_csv_file(self):
+        # CSV 파일 초기화: 파일이 없으면 헤더를 추가
+        try:
+            with open(self.csv_file, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Timestamp", "Sensor1_Temperature", "Sensor1_Humidity"])
+            print(f"{self.csv_file} initialized successfully.")
+        except Exception as e:
+            print(f"Failed to initialize CSV file: {e}")
+
+    def save_to_csv(self):
+        # 센서 데이터를 CSV 파일에 저장
+        if "sensor1" in self.data:
+            sensor1 = self.data["sensor1"]
+            temperature = sensor1.get("temperature", None)
+            humidity = sensor1.get("humidity", None)
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    writer.writerow([timestamp, temperature, humidity])
+                print("Data saved to CSV.")
+            except Exception as e:
+                print(f"Failed to save data to CSV: {e}")
 
     def set_update_callbacks(self, dehumid_callback, dry_callback, image_callback):
         """UI 업데이트를 위한 콜백 함수 등록"""
@@ -55,7 +85,8 @@ class UpdateData:
                     # 이미지 경로 업데이트 예시
                     if self.callbacks["image"]:
                         self.callbacks["image"](self.image_path)  # 이미지 경로를 업데이트하는 콜백 호출
-
+                    self.data = data
+                    self.save_to_csv()
                     # 1초 대기
                     time.sleep(1)
             except Exception as e:

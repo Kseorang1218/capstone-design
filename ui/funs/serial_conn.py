@@ -1,5 +1,5 @@
 import serial
-import json  # json 모듈 사용
+import json
 
 class SerialComm:
     def __init__(self, port='/dev/ttyACM0', baudrate=9600, timeout=1, bytesize=8):
