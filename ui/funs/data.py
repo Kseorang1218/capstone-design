@@ -12,7 +12,7 @@ class UpdateData:
         self.image_path = image_path  # 이미지 경로 추가
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
         self.data = {}
-        self.csv_file = "sensor_data_with_peltier.csv"
+        self.csv_file = "sensor_data_withpeltire.csv"
         self.init_csv_file()
 
     def init_csv_file(self):
