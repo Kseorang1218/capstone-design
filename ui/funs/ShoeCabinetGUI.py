@@ -33,8 +33,43 @@ class SectionFrame:
         return label
 
 
+import tkinter as tk
+from tkinter import font
+from PIL import Image, ImageTk
+import serial
+import time
+
+class SectionFrame:
+    """GUI의 각 구역을 구성하는 프레임 클래스"""
+    def __init__(self, parent, top_color, bg_color="white", top_height=50, width=250, height=300):
+        # 전체 프레임
+        self.frame = tk.Frame(parent, width=width, height=height, bg=bg_color)
+        self.frame.pack(side="top", fill="both", expand=True)
+        self.frame.grid_propagate(False)
+
+        # 상단 프레임 (색상은 외부에서 전달받음)
+        self.top_frame = tk.Frame(self.frame, height=top_height, bg=top_color)
+        self.top_frame.pack(side="top", fill="x")
+
+        # 하단 프레임 (기본적으로 흰색 배경)
+        self.bottom_frame = tk.Frame(self.frame, bg=bg_color)
+        self.bottom_frame.pack(side="top", fill="both", expand=True)
+
+    def add_label_to_bottom(self, text, font, fg, anchor, padding):
+        """하단 영역에 라벨 추가"""
+        label = tk.Label(self.bottom_frame, text=text, bg=self.bottom_frame["bg"], font=font, fg=fg, anchor=anchor)
+        label.pack(pady=padding[0], padx=padding[1], fill="x")
+        return label
+
+    def add_label_to_top(self, text, font, fg, anchor, padding):
+        """상단 영역에 라벨 추가 (배경색도 설정된 상태에서 텍스트를 배치)"""
+        label = tk.Label(self.top_frame, text=text, font=font, fg=fg, anchor=anchor, bg=self.top_frame["bg"])
+        label.pack(pady=padding[0], padx=padding[1], fill="x")
+        return label
+
+
 class ShoeCabinetGUI:
-    def __init__(self, config, data_updater):
+    def __init__(self, config, data_updater, serial_port):
         self.config = config
         self.data_updater = data_updater
         self.window = self.setup_window()
@@ -44,7 +79,7 @@ class ShoeCabinetGUI:
         self.current_image = None
 
         # 시리얼 포트 연결 (아두이노와의 통신)
-        self.serial_port = serial.Serial('/dev/ttyACM0', 9600, timeout=1)  # 'COM3'을 실제 아두이노 포트로 변경
+        self.serial_port = serial_port
         time.sleep(2)  # 아두이노와의 초기 통신을 위해 잠시 대기
 
     def setup_window(self):
@@ -87,8 +122,70 @@ class ShoeCabinetGUI:
                 f"{key}: {value}", font=self.info_font, fg=self.config.colors["text_fg"],
                 anchor="e", padding=self.config.paddings["label_right"]
             )
+
+        # 신발 인식하기 버튼을 생성
+        self.recognize_button = tk.Button(frame.bottom_frame, text="신발 인식하기", font=self.info_font,
+                                        bg=self.config.colors["button_bg"], fg=self.config.colors["button_fg"],
+                                        command=self.toggle_recognition)
+        self.recognize_button.pack(pady=10)
+
         frame.frame.pack(side="right", fill="both", expand=True)
         return frame.frame
+
+    def toggle_recognition(self):
+        """신발 인식 버튼을 눌렀을 때의 동작"""
+        # 신발 인식하기 버튼이 있을 때
+        if self.recognize_button['text'] == "신발 인식하기":
+            # 기존 버튼 제거
+            self.recognize_button.destroy()
+            
+            # 버튼들을 담을 새로운 프레임 생성
+            self.button_frame = tk.Frame(self.dry_frame.winfo_children()[1], bg=self.config.colors["frame_bg"])
+            self.button_frame.pack(pady=10)
+            
+            # 신발 확인 버튼 생성
+            self.check_shoe_button = tk.Button(
+                self.button_frame,
+                text="신발 확인", 
+                font=self.info_font,
+                bg=self.config.colors["button_bg"], 
+                fg=self.config.colors["button_fg"],
+                command=self.check_shoe
+            )
+            self.check_shoe_button.pack(side="left", padx=5)
+            
+            # 다시 인식하기 버튼 생성
+            self.retry_recognition_button = tk.Button(
+                self.button_frame,
+                text="다시 인식하기", 
+                font=self.info_font,
+                bg=self.config.colors["button_bg"], 
+                fg=self.config.colors["button_fg"],
+                command=self.retry_recognition
+            )
+            self.retry_recognition_button.pack(side="left", padx=5)
+    
+    def check_shoe(self):
+        """신발 확인 버튼을 눌렀을 때의 동작"""
+        print("신발 확인 완료!")
+
+
+    def retry_recognition(self):
+        """다시 인식하기 버튼을 눌렀을 때의 동작"""
+        # 기존 버튼들 제거
+        self.button_frame.destroy()
+        
+        # 신발 인식하기 버튼 다시 생성
+        self.recognize_button = tk.Button(
+            self.dry_frame.winfo_children()[1],  # bottom frame
+            text="신발 인식하기", 
+            font=self.info_font,
+            bg=self.config.colors["button_bg"], 
+            fg=self.config.colors["button_fg"],
+            command=self.toggle_recognition
+        )
+        self.recognize_button.pack(pady=10)
+
 
     def start_app(self):
         container_frame = tk.Frame(self.window, bg=self.config.colors["frame_bg"])
