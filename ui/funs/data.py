@@ -48,14 +48,17 @@ class UpdateData:
 
     def start(self):
         """데이터 업데이트를 주기적으로 수행하는 쓰레드 시작"""
-        self.update_thread = threading.Thread(target=self.update_data_loop, daemon=True)
-        self.update_thread.start()
+        if self.serial_comm:  # serial_comm이 None이 아닌 경우에만 데이터 업데이트 시작
+            self.update_thread = threading.Thread(target=self.update_data_loop, daemon=True)
+            self.update_thread.start()
 
-        self.update_dry_time()  # 남은 시간 갱신 시작
+            self.update_dry_time()  # 남은 시간 갱신 시작
+        else:
+            print("Serial communication not initialized. Skipping data update.")
 
     def update_data_loop(self):
         """데이터를 주기적으로 가져와 콜백을 호출"""
-        while True:
+        while self.serial_comm:  # serial_comm이 None이 아니면 데이터를 계속 읽음
             try:
                 # 시리얼 데이터 읽기
                 line = self.serial_comm.read_data()
