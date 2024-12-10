@@ -99,6 +99,18 @@ class ShoeCabinetGUI:
 
         frame.frame.pack(side="right", fill="both", expand=True)
         return frame.frame
+    
+    def update_dehumid_frame(self, data):
+        for key, value in data.items():
+            if key in self.dehumid_labels:
+                self.dehumid_labels[key].config(text=f"{key}: {value}")
+
+    def update_dry_frame(self, data):
+        for key, value in data.items():
+            if key != 'remaining_time' and key in self.dry_labels:
+                self.dry_labels[key].config(text=f"{key}: {value}")
+            else:
+                self.dry_labels[key].config(text=f"{key}: {self.format_time(value)}")
 
     def toggle_recognition(self):
         """신발 인식 버튼을 눌렀을 때의 동작"""
@@ -140,23 +152,8 @@ class ShoeCabinetGUI:
             if image_path:
                 prediction = self.model_handler.predict_shoe_type(image_path)
                 print(prediction)
-                self.update_prediction_label(prediction)
         except Exception as e:
             print(f"신발 확인 중 오류가 발생했습니다: {e}")
-
-
-    def update_prediction_label(self, prediction):
-        """예측 결과를 화면에 표시"""
-        if self.prediction_label is None:
-            # Label이 없다면 새로 생성
-            self.prediction_label = tk.Label(
-                self.window, text=prediction, font=self.info_font,
-                bg=self.config.colors["frame_bg"], fg=self.config.colors["text_fg"]
-            )
-            self.prediction_label.pack(pady=20)  # 적절한 위치에 배치
-        else:
-            # Label이 이미 있다면 내용 업데이트
-            self.prediction_label.config(text=prediction)
 
     def retry_recognition(self):
         """다시 인식하기 버튼을 눌렀을 때의 동작"""
@@ -173,7 +170,6 @@ class ShoeCabinetGUI:
             command=self.toggle_recognition
         )
         self.recognize_button.pack(pady=10)
-
 
     def start_app(self):
         container_frame = tk.Frame(self.window, bg=self.config.colors["frame_bg"])
@@ -198,18 +194,6 @@ class ShoeCabinetGUI:
 
         self.data_updater.set_update_callbacks(self.update_dehumid_frame, self.update_dry_frame, self.update_image)
         self.data_updater.start()
-
-    def update_dehumid_frame(self, data):
-        for key, value in data.items():
-            if key in self.dehumid_labels:
-                self.dehumid_labels[key].config(text=f"{key}: {value}")
-
-    def update_dry_frame(self, data):
-        for key, value in data.items():
-            if key != 'remaining_time' and key in self.dry_labels:
-                self.dry_labels[key].config(text=f"{key}: {value}")
-            else:
-                self.dry_labels[key].config(text=f"{key}: {self.format_time(value)}")
 
     def format_time(self, seconds):
         """남은 시간을 '시간:분:초' 형식으로 변환"""
