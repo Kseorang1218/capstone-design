@@ -3,6 +3,7 @@ from tkinter import font
 from PIL import Image, ImageTk
 import time
 
+import numpy as np
 
 class SectionFrame:
     """GUI의 각 구역을 구성하는 프레임 클래스"""
@@ -45,6 +46,8 @@ class ShoeCabinetGUI:
         self.current_image = None
         self.camera_handler = camera_handler
         self.model_handler = model_handler
+        self.class_probabilities = None
+        self.shoe_types = {0: "부츠", 1: "신발", 2: "슬리퍼", 3: "운동화"}
 
         # 시리얼 포트 연결 (아두이노와의 통신)
         self.serial_port = serial_port
@@ -117,6 +120,17 @@ class ShoeCabinetGUI:
         # 신발 인식하기 버튼이 있을 때
         if self.recognize_button['text'] == "신발 인식하기":
             # 기존 버튼 제거
+            try:
+                image_path = self.camera_handler.capture_and_crop_image()
+                if image_path:
+                    self.class_probabilities = self.model_handler.predict_shoe_type(image_path)
+                    predicted_class = np.argmax(self.class_probabilities)
+                    predicted_shoe_type = self.shoe_types.get(predicted_class, "알 수 없음")  # 예측된 신발 유형
+                    self.data_updater.dry_info["shoes_type"] = predicted_shoe_type
+                    print(self.class_probabilities)
+            except Exception as e:
+                print(f"신발 확인 중 오류가 발생했습니다: {e}")
+
             self.recognize_button.destroy()
             
             # 버튼들을 담을 새로운 프레임 생성
@@ -147,17 +161,7 @@ class ShoeCabinetGUI:
 
     def check_shoe(self):
         """신발 확인 버튼을 눌렀을 때의 동작"""
-        try:
-            image_path = self.camera_handler.capture_and_crop_image()
-            if image_path:
-                prediction = self.model_handler.predict_shoe_type(image_path)
-                print(prediction)
-        except Exception as e:
-            print(f"신발 확인 중 오류가 발생했습니다: {e}")
 
-    def retry_recognition(self):
-        """다시 인식하기 버튼을 눌렀을 때의 동작"""
-        # 기존 버튼들 제거
         self.button_frame.destroy()
         
         # 신발 인식하기 버튼 다시 생성
@@ -170,6 +174,14 @@ class ShoeCabinetGUI:
             command=self.toggle_recognition
         )
         self.recognize_button.pack(pady=10)
+
+    def retry_recognition(self):
+        """다시 인식하기 버튼을 눌렀을 때의 동작"""
+        # 기존 버튼들 제거
+        sorted_indices = np.argsort(self.class_probabilities)[::-1]
+        second_highest_class = sorted_indices[1]
+        predicted_shoe_type = self.shoe_types.get(second_highest_class, "알 수 없음")
+        self.data_updater.dry_info["shoes_type"] = predicted_shoe_type
 
     def start_app(self):
         container_frame = tk.Frame(self.window, bg=self.config.colors["frame_bg"])

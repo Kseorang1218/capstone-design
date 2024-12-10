@@ -2,7 +2,7 @@
 
 from funs.utils import load_yaml
 from funs.ShoeCabinetGUI import ShoeCabinetGUI
-from ui.funs.SerialComm import SerialComm 
+from funs.SerialComm import SerialComm 
 from funs.Updater import UpdateData
 
 def main(config):

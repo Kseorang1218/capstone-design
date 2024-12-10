@@ -9,6 +9,7 @@ class ModelHandler:
 
     def predict_shoe_type(self, image_path):
         """TFLite 모델을 사용하여 신발 유형을 예측"""
+
         try:
             # 모델 로드
             interpreter = Interpreter(model_path=self.model_path)
@@ -30,10 +31,8 @@ class ModelHandler:
             interpreter.invoke()
             output_data = interpreter.get_tensor(output_details[0]['index'])[0]
 
-            # 클래스별 확률 계산
-            class_probabilities = "\n".join([f"클래스 {i}: {prob:.2f}" for i, prob in enumerate(output_data)])
-            predicted_class = np.argmax(output_data)
-            return f"예측 결과: 클래스 {predicted_class}\n\n클래스별 확률:\n{class_probabilities}"
+            return output_data
+
         except Exception as e:
             print(f"모델 예측 중 오류가 발생했습니다: {e}")
-            return "예측 실패"
+            return "예측 실패", ""

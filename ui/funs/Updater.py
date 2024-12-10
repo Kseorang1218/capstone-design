@@ -3,9 +3,14 @@ import time
 import csv
 from datetime import datetime
 
+import threading
+import time
+import csv
+from datetime import datetime
+
 class UpdateData:
     """시리얼 데이터 업데이트를 관리하는 클래스"""
-    def __init__(self, serial_comm, image_path):
+    def __init__(self, serial_comm, image_path, model_handler):
         self.serial_comm = serial_comm
         self.dehumid_info = {"temp": "25°C", "humid": "40%"}
         self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 999999999}
@@ -13,6 +18,7 @@ class UpdateData:
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
         self.data = {}
         self.csv_file = "sensor_data_withpeltire.csv"
+        self.model_handler = model_handler  # ModelHandler 인스턴스를 전달받음
         self.init_csv_file()
 
     def init_csv_file(self):
@@ -85,15 +91,22 @@ class UpdateData:
                         if self.callbacks["dry"]:
                             self.callbacks["dry"](self.dry_info)
 
-                    # 이미지 경로 업데이트 예시
-                    if self.callbacks["image"]:
-                        self.callbacks["image"](self.image_path)  # 이미지 경로를 업데이트하는 콜백 호출
+                    self.check_shoetype()
+
                     self.data = data
                     self.save_to_csv()
                     # 1초 대기
                     time.sleep(1)
             except Exception as e:
                 print(f"데이터 업데이트 중 오류 발생: {e}")
+
+    def check_shoetype(self):
+        # 이미지 경로 업데이트 및 신발 유형 예측
+        if self.callbacks["dry"]:
+            self.callbacks["dry"](self.dry_info)  # UI 갱신을 위한 콜백 호출
+
+        if self.callbacks["image"]:
+            self.callbacks["image"](self.image_path)  # 이미지 경로를 업데이트하는 콜백 호출
 
     def update_image_path(self, new_image_path):
         """이미지 경로 업데이트 및 콜백 호출"""
