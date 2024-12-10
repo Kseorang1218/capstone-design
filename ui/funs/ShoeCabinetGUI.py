@@ -34,7 +34,7 @@ class SectionFrame:
 
 
 class ShoeCabinetGUI:
-    def __init__(self, config, data_updater, serial_port, camera_handler):
+    def __init__(self, config, data_updater, serial_port, camera_handler, model_handler):
         self.config = config
         self.data_updater = data_updater
         self.window = self.setup_window()
@@ -44,6 +44,7 @@ class ShoeCabinetGUI:
         self.image_label = None
         self.current_image = None
         self.camera_handler = camera_handler
+        self.model_handler = model_handler
 
         # 시리얼 포트 연결 (아두이노와의 통신)
         self.serial_port = serial_port
@@ -137,7 +138,7 @@ class ShoeCabinetGUI:
         try:
             image_path = self.camera_handler.capture_and_crop_image()
             if image_path:
-                prediction = self.camera_handler.predict_shoe_type(image_path)
+                prediction = self.model_handler.predict_shoe_type(image_path)
                 print(prediction)
                 self.update_prediction_label(prediction)
         except Exception as e:
