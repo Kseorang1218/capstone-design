@@ -1,43 +1,9 @@
 import tkinter as tk
 from tkinter import font
 from PIL import Image, ImageTk
-import serial
 import time
 
-class SectionFrame:
-    """GUI의 각 구역을 구성하는 프레임 클래스"""
-    def __init__(self, parent, top_color, bg_color="white", top_height=50, width=250, height=300):
-        # 전체 프레임
-        self.frame = tk.Frame(parent, width=width, height=height, bg=bg_color)
-        self.frame.pack(side="top", fill="both", expand=True)
-        self.frame.grid_propagate(False)
-
-        # 상단 프레임 (색상은 외부에서 전달받음)
-        self.top_frame = tk.Frame(self.frame, height=top_height, bg=top_color)
-        self.top_frame.pack(side="top", fill="x")
-
-        # 하단 프레임 (기본적으로 흰색 배경)
-        self.bottom_frame = tk.Frame(self.frame, bg=bg_color)
-        self.bottom_frame.pack(side="top", fill="both", expand=True)
-
-    def add_label_to_bottom(self, text, font, fg, anchor, padding):
-        """하단 영역에 라벨 추가"""
-        label = tk.Label(self.bottom_frame, text=text, bg=self.bottom_frame["bg"], font=font, fg=fg, anchor=anchor)
-        label.pack(pady=padding[0], padx=padding[1], fill="x")
-        return label
-
-    def add_label_to_top(self, text, font, fg, anchor, padding):
-        """상단 영역에 라벨 추가 (배경색도 설정된 상태에서 텍스트를 배치)"""
-        label = tk.Label(self.top_frame, text=text, font=font, fg=fg, anchor=anchor, bg=self.top_frame["bg"])
-        label.pack(pady=padding[0], padx=padding[1], fill="x")
-        return label
-
-
-import tkinter as tk
-from tkinter import font
-from PIL import Image, ImageTk
-import serial
-import time
+from picamera2 import Picamera2
 
 class SectionFrame:
     """GUI의 각 구역을 구성하는 프레임 클래스"""
@@ -168,7 +134,31 @@ class ShoeCabinetGUI:
     def check_shoe(self):
         """신발 확인 버튼을 눌렀을 때의 동작"""
         print("신발 확인 완료!")
+        
+        try:
+            # Picamera2 객체 생성
+            picam2 = Picamera2()
 
+            # Still Image Config 생성
+            config = picam2.create_still_configuration()
+            picam2.configure(config)
+
+            # 카메라 시작
+            picam2.start()
+
+            # 잠시 기다려 카메라가 준비되도록 함
+            time.sleep(2)
+
+            # 사진 촬영 후 저장
+            image_path = './data/fig.jpg'
+            picam2.capture_file(image_path)
+            print(f"사진이 저장되었습니다: {image_path}")
+
+            # 카메라 종료
+            picam2.stop()
+
+        except Exception as e:
+            print(f"카메라 촬영 중 오류가 발생했습니다: {e}")
 
     def retry_recognition(self):
         """다시 인식하기 버튼을 눌렀을 때의 동작"""
