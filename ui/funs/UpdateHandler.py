@@ -8,7 +8,7 @@ import time
 import csv
 from datetime import datetime
 
-class UpdateData:
+class UpdateHandler:
     """시리얼 데이터 업데이트를 관리하는 클래스"""
     def __init__(self, serial_comm, image_path, model_handler):
         self.serial_comm = serial_comm
@@ -42,7 +42,6 @@ class UpdateData:
                 with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
                     writer = csv.writer(file)
                     writer.writerow([timestamp, temperature, humidity])
-                print("Data saved to CSV.")
             except Exception as e:
                 print(f"Failed to save data to CSV: {e}")
 

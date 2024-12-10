@@ -2,12 +2,11 @@
 
 from funs.utils import load_yaml
 from funs.ShoeCabinetGUI import ShoeCabinetGUI
-from funs.SerialComm import SerialComm 
-from funs.Updater import UpdateData
+from funs.UpdateHandler import UpdateHandler
 
 def main(config):
 
-    data_updater = UpdateData(None, './pictures/sneakers.png')
+    data_updater = UpdateHandler(None, './figs/sneakers.png')
     app = ShoeCabinetGUI(config, data_updater, None)
     app.run()
 

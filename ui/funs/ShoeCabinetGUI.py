@@ -35,9 +35,9 @@ class SectionFrame:
 
 
 class ShoeCabinetGUI:
-    def __init__(self, config, data_updater, serial_port, camera_handler, model_handler):
+    def __init__(self, config, update_handler, serial_port, camera_handler, model_handler):
         self.config = config
-        self.data_updater = data_updater
+        self.update_handler = update_handler
         self.window = self.setup_window()
         self.title_font, self.info_font = self.setup_fonts()
         self.create_start_button()
@@ -47,7 +47,9 @@ class ShoeCabinetGUI:
         self.camera_handler = camera_handler
         self.model_handler = model_handler
         self.class_probabilities = None
-        self.shoe_types = {0: "부츠", 1: "신발", 2: "슬리퍼", 3: "운동화"}
+        self.shoe_types = {0: "부츠", 1: "구두", 2: "슬리퍼", 3: "운동화"}
+        self.figs_root = "./figs"
+        self.shoe_english_names = {"부츠": "boots", "구두": "shoes", "슬리퍼": "slipper", "운동화": "sneakers"}
 
         # 시리얼 포트 연결 (아두이노와의 통신)
         self.serial_port = serial_port
@@ -75,7 +77,7 @@ class ShoeCabinetGUI:
         self.dehumid_labels = {}
         frame.add_label_to_top("제습", font=self.title_font, fg=self.config.colors["text_fg"],
                                 anchor='center', padding=self.config.paddings["title"])
-        for key, value in self.data_updater.dehumid_info.items():
+        for key, value in self.update_handler.dehumid_info.items():
             self.dehumid_labels[key] = frame.add_label_to_bottom(
                 f"{key}: {value}", font=self.info_font, fg=self.config.colors["text_fg"],
                 anchor="w", padding=self.config.paddings["label_left"]
@@ -88,7 +90,7 @@ class ShoeCabinetGUI:
         self.dry_labels = {}
         frame.add_label_to_top("건조", font=self.title_font, fg=self.config.colors["text_fg"],
                                 anchor='center', padding=self.config.paddings["title"])
-        for key, value in self.data_updater.dry_info.items():
+        for key, value in self.update_handler.dry_info.items():
             self.dry_labels[key] = frame.add_label_to_bottom(
                 f"{key}: {value}", font=self.info_font, fg=self.config.colors["text_fg"],
                 anchor="e", padding=self.config.paddings["label_right"]
@@ -126,7 +128,8 @@ class ShoeCabinetGUI:
                     self.class_probabilities = self.model_handler.predict_shoe_type(image_path)
                     predicted_class = np.argmax(self.class_probabilities)
                     predicted_shoe_type = self.shoe_types.get(predicted_class, "알 수 없음")  # 예측된 신발 유형
-                    self.data_updater.dry_info["shoes_type"] = predicted_shoe_type
+                    self.update_handler.dry_info["shoes_type"] = predicted_shoe_type
+                    self.update_handler.image_path = f'{self.figs_root}/{self.shoe_english_names[predicted_shoe_type]}.png'
                     print(self.class_probabilities)
             except Exception as e:
                 print(f"신발 확인 중 오류가 발생했습니다: {e}")
@@ -181,7 +184,8 @@ class ShoeCabinetGUI:
         sorted_indices = np.argsort(self.class_probabilities)[::-1]
         second_highest_class = sorted_indices[1]
         predicted_shoe_type = self.shoe_types.get(second_highest_class, "알 수 없음")
-        self.data_updater.dry_info["shoes_type"] = predicted_shoe_type
+        self.update_handler.dry_info["shoes_type"] = predicted_shoe_type
+        self.update_handler.image_path = f'{self.figs_root}/{self.shoe_english_names[predicted_shoe_type]}.png'
 
     def start_app(self):
         container_frame = tk.Frame(self.window, bg=self.config.colors["frame_bg"])
@@ -204,8 +208,8 @@ class ShoeCabinetGUI:
             if isinstance(widget, tk.Button) and widget != self.send_button:
                 widget.destroy()
 
-        self.data_updater.set_update_callbacks(self.update_dehumid_frame, self.update_dry_frame, self.update_image)
-        self.data_updater.start()
+        self.update_handler.set_update_callbacks(self.update_dehumid_frame, self.update_dry_frame, self.update_image)
+        self.update_handler.start()
 
     def format_time(self, seconds):
         """남은 시간을 '시간:분:초' 형식으로 변환"""
