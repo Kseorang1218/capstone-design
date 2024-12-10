@@ -3,7 +3,6 @@ from tkinter import font
 from PIL import Image, ImageTk
 import time
 
-from picamera2 import Picamera2
 
 class SectionFrame:
     """GUI의 각 구역을 구성하는 프레임 클래스"""
@@ -35,14 +34,16 @@ class SectionFrame:
 
 
 class ShoeCabinetGUI:
-    def __init__(self, config, data_updater, serial_port):
+    def __init__(self, config, data_updater, serial_port, camera_handler):
         self.config = config
         self.data_updater = data_updater
         self.window = self.setup_window()
         self.title_font, self.info_font = self.setup_fonts()
         self.create_start_button()
+        self.prediction_label = None
         self.image_label = None
         self.current_image = None
+        self.camera_handler = camera_handler
 
         # 시리얼 포트 연결 (아두이노와의 통신)
         self.serial_port = serial_port
@@ -130,35 +131,31 @@ class ShoeCabinetGUI:
                 command=self.retry_recognition
             )
             self.retry_recognition_button.pack(side="left", padx=5)
-    
+
     def check_shoe(self):
         """신발 확인 버튼을 눌렀을 때의 동작"""
-        print("신발 확인 완료!")
-        
         try:
-            # Picamera2 객체 생성
-            picam2 = Picamera2()
-
-            # Still Image Config 생성
-            config = picam2.create_still_configuration()
-            picam2.configure(config)
-
-            # 카메라 시작
-            picam2.start()
-
-            # 잠시 기다려 카메라가 준비되도록 함
-            time.sleep(2)
-
-            # 사진 촬영 후 저장
-            image_path = './data/fig.jpg'
-            picam2.capture_file(image_path)
-            print(f"사진이 저장되었습니다: {image_path}")
-
-            # 카메라 종료
-            picam2.stop()
-
+            image_path = self.camera_handler.capture_and_crop_image()
+            if image_path:
+                prediction = self.camera_handler.predict_shoe_type(image_path)
+                print(prediction)
+                self.update_prediction_label(prediction)
         except Exception as e:
-            print(f"카메라 촬영 중 오류가 발생했습니다: {e}")
+            print(f"신발 확인 중 오류가 발생했습니다: {e}")
+
+
+    def update_prediction_label(self, prediction):
+        """예측 결과를 화면에 표시"""
+        if self.prediction_label is None:
+            # Label이 없다면 새로 생성
+            self.prediction_label = tk.Label(
+                self.window, text=prediction, font=self.info_font,
+                bg=self.config.colors["frame_bg"], fg=self.config.colors["text_fg"]
+            )
+            self.prediction_label.pack(pady=20)  # 적절한 위치에 배치
+        else:
+            # Label이 이미 있다면 내용 업데이트
+            self.prediction_label.config(text=prediction)
 
     def retry_recognition(self):
         """다시 인식하기 버튼을 눌렀을 때의 동작"""

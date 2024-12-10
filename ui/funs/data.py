@@ -67,7 +67,7 @@ class UpdateData:
                     data = self.serial_comm.get_data()
 
                     # Debug: 받은 데이터 확인
-                    print(f"수신 데이터: {data}")
+                    # print(f"수신 데이터: {data}")
 
                     # sensor1 데이터 -> 제습 프레임 업데이트
                     if "sensor1" in data:

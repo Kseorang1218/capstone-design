@@ -14,7 +14,7 @@ class SerialComm:
     def read_data(self):
         if self.ser and self.ser.in_waiting > 0:
             line = self.ser.readline().decode('utf-8').strip()
-            print(f"받은 데이터: {line}")
+            # print(f"받은 데이터: {line}")
             return line
         return None
 
