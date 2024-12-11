@@ -10,7 +10,7 @@ from funs.ModelHandler import ModelHandler
 def main(config):
     serial_comm = SerialComm(port='/dev/ttyACM0', baudrate=9600, timeout=1)
     camera_handler = CameraHandler(save_dir="./data")
-    model_handler = ModelHandler(model_path="./model/model_1211.tflite")
+    model_handler = ModelHandler(model_path="./model/model_1211_1805.tflite")
     data_updater = UpdateHandler(serial_comm, './figs/sneakers.png', model_handler)
 
     app = ShoeCabinetGUI(config, data_updater, serial_comm.ser, camera_handler, model_handler)
