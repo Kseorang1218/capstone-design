@@ -1,6 +1,8 @@
 import os
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageFilter
 import random
+
+import numpy as np
 
 # 입력 및 출력 디렉토리 설정
 input_dir = "figs"
@@ -27,24 +29,48 @@ for filename in os.listdir(input_dir):
 output_dir = os.path.join(cropped_dir, "augmented")
 os.makedirs(output_dir, exist_ok=True)
 
+def add_noise(image):
+    np_image = np.array(image)
+    noise = np.random.normal(0, 25, np_image.shape)  # 평균 0, 표준편차 25인 가우시안 노이즈
+    noisy_image = np_image + noise
+    noisy_image = np.clip(noisy_image, 0, 255)  # 0-255 범위로 자르기
+    return Image.fromarray(noisy_image.astype('uint8'))
+
 # 증강 함수
 def augment_image(image):
     operations = [
-        lambda x: x.rotate(random.uniform(-30, 30)),  # 회전
-        lambda x: x.transpose(Image.FLIP_LEFT_RIGHT),  # 좌우 반전
-        lambda x: ImageEnhance.Brightness(x).enhance(random.uniform(0.7, 1.3)),  # 밝기 조정
-        lambda x: x.resize((int(x.width * random.uniform(0.9, 1.1)), int(x.height * random.uniform(0.9, 1.1))))  # 크기 조정
+        # 회전
+        lambda x: x.rotate(random.uniform(-30, 30)),
+        # 좌우 반전
+        lambda x: x.transpose(Image.FLIP_LEFT_RIGHT),
+        # 밝기 조정
+        lambda x: ImageEnhance.Brightness(x).enhance(random.uniform(0.7, 1.3)),
+        # 대비 조정
+        lambda x: ImageEnhance.Contrast(x).enhance(random.uniform(0.7, 1.3)),
+        # 채도 조정
+        lambda x: ImageEnhance.Color(x).enhance(random.uniform(0.7, 1.3)),
+        # 선명도 조정
+        lambda x: ImageEnhance.Sharpness(x).enhance(random.uniform(0.7, 1.3)),
+        # 크기 조정
+        lambda x: x.resize((int(x.width * random.uniform(0.9, 1.1)), int(x.height * random.uniform(0.9, 1.1)))),
+        # 흑백 변환 후 다시 RGB로
+        lambda x: x.convert("L").convert("RGB"),
+        # 노이즈 추가
+        lambda x: add_noise(x),
+        # 가우시안 블러
+        lambda x: x.filter(ImageFilter.GaussianBlur(radius=random.uniform(1, 2))),
     ]
-    for operation in random.sample(operations, random.randint(1, 2)):
+    
+    for operation in random.sample(operations, random.randint(1, 3)):  # 여러 증강을 섞어서 적용
         image = operation(image)
     return image
 
 # 데이터 증강: 데이터 불균형을 고려하여 증강 횟수를 조정
 augmentation_counts = {
-    "shoes": 20,
-    "boots": 20,
-    "slipper": 10,
-    "sneakers": 5
+    "shoes": 30,
+    "boots": 30,
+    "slipper": 15,
+    "sneakers": 10
 }
 
 for filename in os.listdir(cropped_dir):
