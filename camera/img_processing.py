@@ -12,8 +12,8 @@ os.makedirs(cropped_dir, exist_ok=True)
 # 이미지 크롭 함수 (550 픽셀 제거)
 def crop_image(image):
     width, height = image.size
-    cropped_height = max(0, height - 550)  # 높이가 550보다 작을 경우 대비
-    return image.crop((0, 0, width, cropped_height))
+    return image.crop((2500, 0, width, height))
+
 
 # figs 디렉토리의 모든 이미지를 크롭하고 저장
 for filename in os.listdir(input_dir):
@@ -67,10 +67,10 @@ def augment_image(image):
 
 # 데이터 증강: 데이터 불균형을 고려하여 증강 횟수를 조정
 augmentation_counts = {
-    "shoes": 30,
-    "boots": 30,
-    "slipper": 15,
-    "sneakers": 10
+    "shoes": 35,
+    "boots": 47,
+    "slipper": 28,
+    "sneakers": 15
 }
 
 for filename in os.listdir(cropped_dir):

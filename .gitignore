@@ -1,2 +1,6 @@
 capstone_design
 __pycache__
+
+dataset/
+figs
+save_model/
