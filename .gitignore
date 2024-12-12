@@ -3,4 +3,4 @@ __pycache__
 
 dataset/
 figs
-save_model/
+saved_model/
