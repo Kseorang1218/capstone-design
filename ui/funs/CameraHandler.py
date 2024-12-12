@@ -14,8 +14,7 @@ class CameraHandler:
     def crop_image(self, image):
         """이미지에서 하단 550픽셀을 자르는 함수"""
         width, height = image.size
-        cropped_height = max(0, height - 550)  # 높이가 550보다 작을 경우 대비
-        return image.crop((0, 0, width, cropped_height))  # (왼쪽, 위쪽, 오른쪽, 아래쪽)
+        return image.crop((2500, 0, width, height))  # (왼쪽, 위쪽, 오른쪽, 아래쪽)
         
     def capture_and_crop_image(self, filename="pic.jpg"):
         """카메라로 사진을 찍고 아래 550 픽셀을 자른 후 저장"""
