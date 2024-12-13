@@ -17,7 +17,7 @@ class UpdateHandler:
         self.image_path = image_path  # 이미지 경로 추가
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
         self.data = {}
-        self.csv_file = "sensor_data_withpeltire.csv"
+        self.csv_file = "sensor_data_only_hot_1213.csv"
         self.model_handler = model_handler  # ModelHandler 인스턴스를 전달받음
         self.init_csv_file()
 
