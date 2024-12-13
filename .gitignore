@@ -2,5 +2,4 @@ capstone_design
 __pycache__
 
 dataset/
-camera/figs/
 saved_model/
