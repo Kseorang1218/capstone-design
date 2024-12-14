@@ -30,7 +30,7 @@ class FontManager:
 
 class BaseFrame:
     """기본 프레임 클래스"""
-    def __init__(self, parent, config, title, top_color, font_manager):
+    def __init__(self, parent, config, title, top_color, font_manager, title_fg="black"):
         self.config = config
         self.font_manager = font_manager
         
@@ -51,19 +51,20 @@ class BaseFrame:
         self.button_frame.pack(side="bottom", pady=10)
 
         # 제목 추가
-        self.add_title(title)
+        self.add_title(title, title_fg)
 
-    def add_title(self, title):
+    def add_title(self, title, title_fg="black"):
         """프레임 상단에 제목 추가"""
         label = tk.Label(
             self.top_frame, 
             text=title, 
             font=self.font_manager.title_font, 
-            fg=self.config.colors["text_fg"], 
+            fg=title_fg,  # 제목 색상 변경
             bg=self.top_frame["bg"],
             anchor='center'
         )
         label.pack(pady=self.config.paddings["title"][0], padx=self.config.paddings["title"][1])
+
 
     def create_button(self, text, command):
         """버튼 생성 및 추가"""
@@ -90,8 +91,9 @@ class DehumidFrame(BaseFrame):
             parent, 
             config, 
             "제습", 
-            config.colors["dehumid_bg"], 
-            font_manager
+            "black",  # 상단 프레임 색상 변경
+            font_manager,
+            title_fg="white"
         )
         
         self.update_handler = update_handler
@@ -102,13 +104,16 @@ class DehumidFrame(BaseFrame):
             label = tk.Label(
                 self.bottom_frame, 
                 text=f"{key}: {value}", 
-                bg=self.config.colors["frame_bg"],
+                bg="#2e2e2e",  # 배경 색상 어두운 회색
                 font=self.font_manager.info_font, 
-                fg=self.config.colors["text_fg"],
+                fg="white",  # 글자 색상 흰색
                 anchor="w"
             )
             label.pack(pady=self.config.paddings["label_left"][0], padx=self.config.paddings["label_left"][1], fill="x")
             self.labels[key] = label
+
+        self.bottom_frame.config(bg="#2e2e2e")  # 하단 프레임 색상 설정
+        self.button_frame.config(bg="#2e2e2e")  # 버튼 프레임 색상 설정
         
         # 초기 버튼 설정
         self.create_initial_buttons()
@@ -141,7 +146,7 @@ class DryFrame(BaseFrame):
             parent, 
             config, 
             "건조", 
-            config.colors["dry_bg"], 
+            "white",  # 상단 프레임 색상 변경
             font_manager
         )
         
@@ -150,8 +155,8 @@ class DryFrame(BaseFrame):
         self.camera_handler = camera_handler
         
         self.class_probs = None
-
-
+        self.options = ["고무", "면", "가죽", "스웨이드", "AI 모드"]
+        
         self.labels = {}
         self.shoe_types = {0: "부츠", 1: "구두", 2: "슬리퍼", 3: "운동화"}
         self.shoe_english_names = {"부츠": "boots", "구두": "shoes", "슬리퍼": "slipper", "운동화": "sneakers"}
@@ -162,22 +167,82 @@ class DryFrame(BaseFrame):
             label = tk.Label(
                 self.bottom_frame, 
                 text=label_text, 
-                bg=self.config.colors["frame_bg"],
+                bg="#f9f9f9",  # 배경 색상 아주 밝은 회색
                 font=self.font_manager.info_font, 
-                fg=self.config.colors["text_fg"],
+                fg="black",  # 글자 색상 검은색
                 anchor="e"
             )
             label.pack(pady=self.config.paddings["label_right"][0], padx=self.config.paddings["label_right"][1], fill="x")
             self.labels[key] = label
+
+        self.bottom_frame.config(bg="#f9f9f9")  # 하단 프레임 색상 설정
+        self.button_frame.config(bg="#f9f9f9")  # 버튼 프레임 색상 설정
         
         # 초기 버튼 설정
         self.create_initial_buttons()
 
     def create_initial_buttons(self):
-        """초기 건조 모드 버튼 생성"""
+        self.create_button("건조 코스 고르기", self.create_slider)
+
+    def create_slider(self):
         self.clear_buttons()
-        self.create_button("AI 자동 모드", self.set_ai_auto_mode)
-        self.create_button("수동 모드", self.set_manual_mode)
+        """재질 선택을 위한 슬라이더 생성"""
+        self.material_slider_label = tk.Label(
+            self.bottom_frame, 
+            text="재질을 선택하세요:", 
+            font=self.font_manager.info_font, 
+            bg="#f9f9f9",  # 배경 색상 아주 밝은 회색
+            fg="black"  # 글자 색상 검은색
+        )
+        self.material_slider_label.pack(pady=10)
+
+        # 슬라이더 생성 (0: 고무, 1: 면, 2: 가죽, 3: 스웨이드, 4:AI 모드)
+        self.material_slider = tk.Scale(
+            self.bottom_frame,
+            from_=0,
+            to=len(self.options) - 1,
+            orient="horizontal",
+            showvalue=0,
+            length=300,  # 슬라이더 길이
+            sliderlength=35,  # 슬라이더 핸들 크기
+            command=self.update_material_label,
+            relief="flat",  # 경계를 없애면 더 부드러운 느낌을 줄 수 있음
+            highlightthickness=2,  # 강조선 두께
+            bd=0  # 테두리 없애기
+        )
+
+        self.material_slider.pack(pady=10)
+
+        # 선택된 재질를 표시하는 라벨
+        self.selected_material_label = tk.Label(
+            self.bottom_frame, 
+            text=f"선택된 재질: {self.options[0]}", 
+            font=self.font_manager.info_font, 
+            bg="#f9f9f9",  # 배경 색상 아주 밝은 회색
+            fg="black"  # 글자 색상 검은색
+        )
+        self.selected_material_label.pack(pady=10)
+
+        self.create_button("확인", self.confirm_material)
+
+    def update_material_label(self, val):
+        """슬라이더 값에 따라 선택된 재질 업데이트"""
+        selected_material = self.options[int(val)]
+        self.selected_material_label.config(text=f"선택된 재질: {selected_material}")
+
+    def confirm_material(self):
+        """선택된 재질 확인 버튼을 클릭했을 때 출력"""
+        selected_material = self.options[self.material_slider.get()]
+        print(f"확인된 재질: {selected_material}")
+
+        if selected_material == 'AI 모드':
+            # 버튼과 슬라이더 및 관련 라벨들 지우기
+            self.clear_buttons()
+            self.material_slider_label.destroy()
+            self.material_slider.destroy()
+            self.selected_material_label.destroy()
+
+            self.set_ai_auto_mode()
 
     def set_ai_auto_mode(self):
         """AI 자동 모드 설정"""
@@ -185,14 +250,6 @@ class DryFrame(BaseFrame):
         self.create_button("신발 인식하기", self.toggle_recognition)
         self.create_button("건조 중지하기", self.stop_drying)
         print("AI 자동 모드로 전환합니다.")
-
-    def set_manual_mode(self):
-        """수동 모드 설정"""
-        self.clear_buttons()
-        materials = ["고무", "면", "가죽", "스웨이드"]
-        for material in materials:
-            self.create_button(material, lambda m=material: print(m))
-        print("수동 모드로 전환합니다.")
 
     def toggle_recognition(self):
         """신발 인식 동작"""
@@ -215,6 +272,8 @@ class DryFrame(BaseFrame):
     def check_shoe(self):
         """신발 확인"""
         print(self.update_handler.dry_info["shoes_type"])
+
+        self.clear_buttons()
         self.create_initial_buttons()
 
     def retry_recognition(self):
@@ -225,11 +284,14 @@ class DryFrame(BaseFrame):
         self.update_handler.dry_info["shoes_type"] = predicted_shoe_type
         self.update_handler.image_path = f'{self.figs_root}/{self.shoe_english_names[predicted_shoe_type]}.png'
 
-        self.create_initial_buttons()
-
+        self.clear_buttons()
+        self.create_button("신발 확인", self.check_shoe)
+        self.create_button("건조 중지하기", self.stop_drying)
 
     def stop_drying(self):
         print("건조를 중지합니다.")
+        self.clear_buttons()
+        self.create_initial_buttons()
 
     def update_labels(self, data):
         """건조 정보 라벨 업데이트"""
@@ -246,7 +308,6 @@ class DryFrame(BaseFrame):
         seconds = seconds % 60
         return f"{hours:02}:{minutes:02}:{seconds:02}"
 
-# 이전에 작성한 DehumidFrame과 DryFrame 클래스는 그대로 유지
 
 class ShoeCabinetGUI:
     def __init__(self, config, update_handler, serial_port, camera_handler, model_handler):
@@ -366,7 +427,6 @@ class ShoeCabinetGUI:
         """이미지 업데이트"""
         try:
             self.current_image = image_path
-            print(self.current_image)
             img = Image.open(image_path)
             img = img.resize((100, 100), Image.LANCZOS)
             img_tk = ImageTk.PhotoImage(img)
@@ -374,7 +434,7 @@ class ShoeCabinetGUI:
             self.image_label = tk.Label(
                 self.window, 
                 image=img_tk, 
-                bg=self.config.colors["frame_bg"]
+                bg="#f9f9f9"
             )
             self.image_label.image = img_tk
             self.image_label.place(x=400, y=100)
