@@ -3,3 +3,5 @@ __pycache__
 
 dataset/
 saved_model/
+
+camera/figs/cropped

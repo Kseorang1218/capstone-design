@@ -9,10 +9,11 @@ input_dir = "figs"
 cropped_dir = os.path.join(input_dir, "cropped")
 os.makedirs(cropped_dir, exist_ok=True)
 
-# 이미지 크롭 함수 (550 픽셀 제거)
-def crop_image(image):
+def crop_image(image, crop_width = 1500):
     width, height = image.size
-    return image.crop((2500, 0, width, height))
+    # 오른쪽에서 crop_width만큼 잘라내기
+    return image.crop((0, 0, width - crop_width, height))
+
 
 
 # figs 디렉토리의 모든 이미지를 크롭하고 저장
@@ -24,6 +25,8 @@ for filename in os.listdir(input_dir):
             cropped_img = crop_image(img)
             cropped_img.save(cropped_path)
             print(f"크롭 저장됨: {cropped_path}")
+
+
 
 # 증강을 위한 디렉토리 설정
 output_dir = os.path.join(cropped_dir, "augmented")
