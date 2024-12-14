@@ -82,6 +82,33 @@ class ShoeCabinetGUI:
                 f"{key}: {value}", font=self.info_font, fg=self.config.colors["text_fg"],
                 anchor="w", padding=self.config.paddings["label_left"]
             )
+        
+        # 제습 버튼 프레임 생성
+        self.dehumid_button_frame = tk.Frame(frame.bottom_frame, bg=self.config.colors["frame_bg"])
+        self.dehumid_button_frame.pack(pady=10)
+        
+        # 제습 시작 버튼
+        self.start_dehumid_button = tk.Button(
+            self.dehumid_button_frame,
+            text="제습 시작", 
+            font=self.info_font,
+            bg=self.config.colors["button_bg"], 
+            fg=self.config.colors["button_fg"],
+            command=self.start_dehumidification
+        )
+        self.start_dehumid_button.pack(side="left", padx=5)
+        
+        # 제습 중지 버튼
+        self.stop_dehumid_button = tk.Button(
+            self.dehumid_button_frame,
+            text="제습 중지", 
+            font=self.info_font,
+            bg=self.config.colors["button_bg"], 
+            fg=self.config.colors["button_fg"],
+            command=self.stop_dehumidification
+        )
+        self.stop_dehumid_button.pack(side="left", padx=5)
+        
         frame.frame.pack(side="left", fill="both", expand=True)
         return frame.frame
 
@@ -96,14 +123,146 @@ class ShoeCabinetGUI:
                 anchor="e", padding=self.config.paddings["label_right"]
             )
 
-        # 신발 인식하기 버튼을 생성
-        self.recognize_button = tk.Button(frame.bottom_frame, text="신발 인식하기", font=self.info_font,
-                                        bg=self.config.colors["button_bg"], fg=self.config.colors["button_fg"],
-                                        command=self.toggle_recognition)
-        self.recognize_button.pack(pady=10)
+        # 건조 모드 버튼 프레임 생성
+        self.dry_mode_button_frame = tk.Frame(frame.bottom_frame, bg=self.config.colors["frame_bg"])
+        self.dry_mode_button_frame.pack(pady=10)
+        
+        # AI 자동 모드 버튼
+        self.ai_auto_mode_button = tk.Button(
+            self.dry_mode_button_frame,
+            text="AI 자동 모드", 
+            font=self.info_font,
+            bg=self.config.colors["button_bg"], 
+            fg=self.config.colors["button_fg"],
+            command=self.set_ai_auto_mode
+        )
+        self.ai_auto_mode_button.pack(side="left", padx=5)
+        
+        # 수동 모드 버튼
+        self.manual_mode_button = tk.Button(
+            self.dry_mode_button_frame,
+            text="수동 모드", 
+            font=self.info_font,
+            bg=self.config.colors["button_bg"], 
+            fg=self.config.colors["button_fg"],
+            command=self.set_manual_mode
+        )
+        self.manual_mode_button.pack(side="left", padx=5)
+
+        # 기존 신발 인식하기 버튼
+        # self.recognize_button = tk.Button(frame.bottom_frame, text="신발 인식하기", font=self.info_font,
+        #                                 bg=self.config.colors["button_bg"], fg=self.config.colors["button_fg"],
+        #                                 command=self.toggle_recognition)
+        # self.recognize_button.pack(pady=10)
 
         frame.frame.pack(side="right", fill="both", expand=True)
         return frame.frame
+    
+    def create_button(self, frame, text, command):
+        """버튼 생성 및 프레임에 추가"""
+        button = tk.Button(
+            frame,
+            text=text,
+            font=self.info_font,
+            bg=self.config.colors["button_bg"],
+            fg=self.config.colors["button_fg"],
+            command=command
+        )
+        button.pack(side="left", padx=5)
+    
+
+    def start_dehumidification(self):
+        """제습 시작 버튼을 눌렀을 때의 동작"""
+        # 아두이노나 다른 시스템에 제습 시작 신호를 보내는 로직 추가
+        print("제습을 시작합니다.")
+        # 예: self.serial_port.write(b'START_DEHUMID')
+
+    def stop_dehumidification(self):
+        """제습 중지 버튼을 눌렀을 때의 동작"""
+        # 아두이노나 다른 시스템에 제습 중지 신호를 보내는 로직 추가
+        print("제습을 중지합니다.")
+        # 예: self.serial_port.write(b'STOP_DEHUMID')
+
+    def set_ai_auto_mode(self):
+        """AI 자동 모드 버튼을 눌렀을 때의 동작"""
+        # 기존 버튼들 제거
+        self.clear_frame_widgets(self.dry_mode_button_frame)
+
+        # 신발 확인하기 버튼 생성
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="신발 인식하기",
+            command=self.toggle_recognition
+        )
+
+        # 건조 중지하기 버튼 생성
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="건조 중지하기",
+            command=self.stop_drying
+        )
+
+        print("AI 자동 모드로 전환합니다.")
+
+
+    def stop_drying(self):
+        """건조 중지 버튼을 눌렀을 때의 동작"""
+        print("건조를 중지합니다.")
+
+        # 기존 버튼 제거
+        self.clear_frame_widgets(self.dry_mode_button_frame)
+
+        # AI 자동 모드 버튼 복원
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="AI 자동 모드",
+            command=self.set_ai_auto_mode
+        )
+
+        # 수동 모드 버튼 복원
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="수동 모드",
+            command=self.set_manual_mode
+        )
+
+    def clear_frame_widgets(self, frame):
+        """프레임의 모든 위젯 제거"""
+        for widget in frame.winfo_children():
+            widget.destroy()
+
+    def echo(self, text):
+        print(text)
+
+    def set_manual_mode(self):
+        """수동 모드 버튼을 눌렀을 때의 동작"""
+        # 수동 모드로 전환하는 로직 추가
+        print("수동 모드로 전환합니다.")
+        self.clear_frame_widgets(self.dry_mode_button_frame)
+
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="고무",
+            command=lambda: self.echo("고무")
+        )
+
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="면",
+            command=lambda: self.echo("면")
+        )
+
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="가죽",
+            command=lambda: self.echo("가죽")
+        )
+
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="스웨이드",
+            command=lambda: self.echo("스웨이드")
+        )
     
     def update_dehumid_frame(self, data):
         for key, value in data.items():
@@ -117,66 +276,42 @@ class ShoeCabinetGUI:
             else:
                 self.dry_labels[key].config(text=f"{key}: {self.format_time(value)}")
 
+
     def toggle_recognition(self):
         """신발 인식 버튼을 눌렀을 때의 동작"""
         # 신발 인식하기 버튼이 있을 때
-        if self.recognize_button['text'] == "신발 인식하기":
-            # 기존 버튼 제거
-            try:
-                image_path = self.camera_handler.capture_and_crop_image()
-                if image_path:
-                    self.class_probabilities = self.model_handler.predict_shoe_type(image_path)
-                    predicted_class = np.argmax(self.class_probabilities)
-                    predicted_shoe_type = self.shoe_types.get(predicted_class, "알 수 없음")  # 예측된 신발 유형
-                    self.update_handler.dry_info["shoes_type"] = predicted_shoe_type
-                    self.update_handler.image_path = f'{self.figs_root}/{self.shoe_english_names[predicted_shoe_type]}.png'
-                    print(self.class_probabilities)
-            except Exception as e:
-                print(f"신발 확인 중 오류가 발생했습니다: {e}")
+        try:
+            image_path = self.camera_handler.capture_and_crop_image()
+            if image_path:
+                self.class_probabilities = self.model_handler.predict_shoe_type(image_path)
+                predicted_class = np.argmax(self.class_probabilities)
+                predicted_shoe_type = self.shoe_types.get(predicted_class, "알 수 없음")  # 예측된 신발 유형
+                self.update_handler.dry_info["shoes_type"] = predicted_shoe_type
+                self.update_handler.image_path = f'{self.figs_root}/{self.shoe_english_names[predicted_shoe_type]}.png'
+                print(self.class_probabilities)
+        except Exception as e:
+            print(f"신발 확인 중 오류가 발생했습니다: {e}")
 
-            self.recognize_button.destroy()
-            
-            # 버튼들을 담을 새로운 프레임 생성
-            self.button_frame = tk.Frame(self.dry_frame.winfo_children()[1], bg=self.config.colors["frame_bg"])
-            self.button_frame.pack(pady=10)
-            
-            # 신발 확인 버튼 생성
-            self.check_shoe_button = tk.Button(
-                self.button_frame,
-                text="신발 확인", 
-                font=self.info_font,
-                bg=self.config.colors["button_bg"], 
-                fg=self.config.colors["button_fg"],
-                command=self.check_shoe
-            )
-            self.check_shoe_button.pack(side="left", padx=5)
-            
-            # 다시 인식하기 버튼 생성
-            self.retry_recognition_button = tk.Button(
-                self.button_frame,
-                text="다시 인식하기", 
-                font=self.info_font,
-                bg=self.config.colors["button_bg"], 
-                fg=self.config.colors["button_fg"],
-                command=self.retry_recognition
-            )
-            self.retry_recognition_button.pack(side="left", padx=5)
+        self.clear_frame_widgets(self.dry_mode_button_frame)
+        
+        # 신발 확인 버튼 생성
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="신발 확인",
+            command=self.check_shoe
+        )
+
+        self.create_button(
+            self.dry_mode_button_frame,
+            text="다시 인식하기", 
+            command=self.retry_recognition
+        )
 
     def check_shoe(self):
         """신발 확인 버튼을 눌렀을 때의 동작"""
 
-        self.button_frame.destroy()
-        
-        # 신발 인식하기 버튼 다시 생성
-        self.recognize_button = tk.Button(
-            self.dry_frame.winfo_children()[1],  # bottom frame
-            text="신발 인식하기", 
-            font=self.info_font,
-            bg=self.config.colors["button_bg"], 
-            fg=self.config.colors["button_fg"],
-            command=self.toggle_recognition
-        )
-        self.recognize_button.pack(pady=10)
+        self.clear_frame_widgets(self.dry_mode_button_frame)
+        print(self.update_handler.dry_info["shoes_type"])
 
     def retry_recognition(self):
         """다시 인식하기 버튼을 눌렀을 때의 동작"""
