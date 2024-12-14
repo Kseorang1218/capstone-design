@@ -1,9 +1,9 @@
 #include <ArduinoJson.h>
 #include "DHT.h"
 
-#define DHTPIN1 5  // DHT22 핀
-#define DHTPIN2 9  // DHT11 첫 번째 핀
-#define DHTPIN3 8  // DHT11 두 번째 핀
+#define DHTPIN1 9  // DHT22 핀
+#define DHTPIN2 6  // DHT11 첫 번째 핀
+#define DHTPIN3 11  // DHT11 두 번째 핀
 #define DHTTYPE22 DHT22
 #define DHTTYPE11 DHT11
 
@@ -13,11 +13,12 @@ DHT dht3(DHTPIN3, DHTTYPE11); // DHT11
 
 // pin map
 // 3: 펠티어
-// 6, 7: 히터
+// 6, 9, 11 온습도
+// 8, 7: 히터
 // 10: LED
-// 11: 환풍팬
 // 12: UV
-const int controlPins[] = {3, 6, 7, 10, 11, 12};
+// 13: 환풍팬
+const int controlPins[] = {3, 7, 8, 10, 12, 13};
 const int numPins = sizeof(controlPins) / sizeof(controlPins[0]);
 int pinStates[numPins] = {0, 0, 0, 0, 0, 0};
 
