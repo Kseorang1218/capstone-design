@@ -1,12 +1,15 @@
 #include <ArduinoJson.h>
 #include "DHT.h"
 
-#define DHTPIN1 5
-#define DHTPIN2 9
-#define DHTTYPE DHT22
+#define DHTPIN1 5  // DHT22 핀
+#define DHTPIN2 9  // DHT11 첫 번째 핀
+#define DHTPIN3 8  // DHT11 두 번째 핀
+#define DHTTYPE22 DHT22
+#define DHTTYPE11 DHT11
 
-DHT dht1(DHTPIN1, DHTTYPE);
-DHT dht2(DHTPIN2, DHTTYPE);
+DHT dht1(DHTPIN1, DHTTYPE22); // DHT22
+DHT dht2(DHTPIN2, DHTTYPE11); // DHT11
+DHT dht3(DHTPIN3, DHTTYPE11); // DHT11
 
 // pin map
 // 3: 펠티어
@@ -26,6 +29,7 @@ void setup() {
   }
   dht1.begin();
   dht2.begin();
+  dht3.begin();
 }
 
 void loop() {
@@ -34,6 +38,8 @@ void loop() {
   float humidity1 = dht1.readHumidity();
   float temp2 = dht2.readTemperature();
   float humidity2 = dht2.readHumidity();
+  float temp3 = dht3.readTemperature();
+  float humidity3 = dht3.readHumidity();
 
   // JSON 데이터 생성
   StaticJsonDocument<256> jsonDoc;
@@ -45,6 +51,10 @@ void loop() {
   JsonObject sensor2 = jsonDoc.createNestedObject("sensor2");
   sensor2["temperature"] = isnan(temp2) ? NAN : temp2;
   sensor2["humidity"] = isnan(humidity2) ? NAN : humidity2;
+
+  JsonObject sensor3 = jsonDoc.createNestedObject("sensor3");
+  sensor3["temperature"] = isnan(temp3) ? NAN : temp3;
+  sensor3["humidity"] = isnan(humidity3) ? NAN : humidity3;
 
   JsonArray pinArray = jsonDoc.createNestedArray("pinStates");
   for (int i = 0; i < numPins; i++) {
