@@ -11,11 +11,11 @@ class CameraHandler:
         self.picam2 = Picamera2()  # 카메라 객체 초기화
         self.picam2_configured = False  # 카메라 초기화 상태 추적
 
-    def crop_image(self, image):
-        """이미지에서 하단 550픽셀을 자르는 함수"""
+    def crop_image(self, image, crop_width = 1500):
         width, height = image.size
-        return image.crop((2500, 0, width, height))  # (왼쪽, 위쪽, 오른쪽, 아래쪽)
-        
+        # 오른쪽에서 crop_width만큼 잘라내기
+        return image.crop((0, 0, width - crop_width, height))
+    
     def capture_and_crop_image(self, filename="pic.jpg"):
         """카메라로 사진을 찍고 아래 550 픽셀을 자른 후 저장"""
         try:

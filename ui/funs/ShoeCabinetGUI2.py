@@ -282,7 +282,7 @@ class DryFrame(BaseFrame):
         second_highest_class = sorted_indices[1]
         predicted_shoe_type = self.shoe_types.get(second_highest_class, "알 수 없음")
         self.update_handler.dry_info["shoes_type"] = predicted_shoe_type
-        self.update_handler.image_path = f'{self.figs_root}/{self.shoe_english_names[predicted_shoe_type]}.png'
+        self.update_handler.image_path = f'./figs/{self.shoe_english_names[predicted_shoe_type]}.png'
 
         self.clear_buttons()
         self.create_button("신발 확인", self.check_shoe)
@@ -425,22 +425,23 @@ class ShoeCabinetGUI:
 
     def update_image(self, image_path):
         """이미지 업데이트"""
-        try:
-            self.current_image = image_path
-            img = Image.open(image_path)
-            img = img.resize((100, 100), Image.LANCZOS)
-            img_tk = ImageTk.PhotoImage(img)
-            
-            self.image_label = tk.Label(
-                self.window, 
-                image=img_tk, 
-                bg="#f9f9f9"
-            )
-            self.image_label.image = img_tk
-            self.image_label.place(x=400, y=100)
+        if self.current_image != image_path:
+            try:
+                self.current_image = image_path
+                img = Image.open(image_path)
+                img = img.resize((100, 100), Image.LANCZOS)
+                img_tk = ImageTk.PhotoImage(img)
+                
+                self.image_label = tk.Label(
+                    self.window, 
+                    image=img_tk, 
+                    bg="#f9f9f9"
+                )
+                self.image_label.image = img_tk
+                self.image_label.place(x=500, y=100)
 
-        except Exception as e:
-            print(f"이미지를 불러오는 중 오류가 발생했습니다: {e}")
+            except Exception as e:
+                print(f"이미지를 불러오는 중 오류가 발생했습니다: {e}")
 
     def send_to_arduino(self):
         """아두이노로 핀 값 전송"""

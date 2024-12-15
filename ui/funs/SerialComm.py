@@ -23,7 +23,8 @@ class SerialComm:
             json_data = json.loads(line)  # JSON 문자열 파싱
             self.data = {
                 "sensor1": json_data.get("sensor1", {}),
-                "sensor2": json_data.get("sensor2", {})
+                "sensor2": json_data.get("sensor2", {}),
+                "sensor3": json_data.get("sensor3", {})
             }
         except json.JSONDecodeError as e:
             print(f"JSON 파싱 오류: {e}")

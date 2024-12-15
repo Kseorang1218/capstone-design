@@ -10,14 +10,14 @@ from datetime import datetime
 
 class UpdateHandler:
     """시리얼 데이터 업데이트를 관리하는 클래스"""
-    def __init__(self, serial_comm, image_path, model_handler):
+    def __init__(self, serial_comm, image_path, model_handler, csv_name):
         self.serial_comm = serial_comm
         self.dehumid_info = {"temp": "25°C", "humid": "40%"}
         self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 999999999}
         self.image_path = image_path  # 이미지 경로 추가
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
         self.data = {}
-        self.csv_file = "sensor_data_only_hot_1213.csv"
+        self.csv_file = csv_name
         self.model_handler = model_handler  # ModelHandler 인스턴스를 전달받음
         self.init_csv_file()
 
@@ -26,7 +26,7 @@ class UpdateHandler:
         try:
             with open(self.csv_file, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
-                writer.writerow(["Timestamp", "Sensor1_Temperature", "Sensor1_Humidity"])
+                writer.writerow(["Timestamp", "Sensor1_Temperature", "Sensor1_Humidity", "Sensor2_Temperature", "Sensor2_Humidity",  "Sensor3_Temperature", "Sensor3_Humidity"])
             print(f"{self.csv_file} initialized successfully.")
         except Exception as e:
             print(f"Failed to initialize CSV file: {e}")
@@ -35,13 +35,21 @@ class UpdateHandler:
         # 센서 데이터를 CSV 파일에 저장
         if "sensor1" in self.data:
             sensor1 = self.data["sensor1"]
-            temperature = sensor1.get("temperature", None)
-            humidity = sensor1.get("humidity", None)
+            temperature1 = sensor1.get("temperature", None)
+            humidity1 = sensor1.get("humidity", None)
+
+            sensor2 = self.data["sensor2"]
+            temperature2 = sensor2.get("temperature", None)
+            humidity2 = sensor2.get("humidity", None)
+
+            sensor3 = self.data["sensor3"]
+            temperature3 = sensor3.get("temperature", None)
+            humidity3 = sensor3.get("humidity", None)
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             try:
                 with open(self.csv_file, mode='a', newline='', encoding='utf-8') as file:
                     writer = csv.writer(file)
-                    writer.writerow([timestamp, temperature, humidity])
+                    writer.writerow([timestamp, temperature1, humidity1, temperature2, humidity2, temperature3, humidity3])
             except Exception as e:
                 print(f"Failed to save data to CSV: {e}")
 

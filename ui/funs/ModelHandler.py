@@ -21,10 +21,13 @@ class ModelHandler:
             input_dtype = input_details[0]['dtype']
 
             # 이미지 전처리
-            image = Image.open(image_path).convert("L")  # 그레이스케일로 변환
+            image = Image.open(image_path).convert("RGB")  # 그레이스케일로 변환
             image = image.resize(input_shape)  # 모델 입력 크기에 맞게 리사이즈
-            input_data = np.expand_dims(np.array(image) / 255.0, axis=(0, -1))  # 정규화 및 채널 차원 추가
+            input_data = np.expand_dims(np.array(image) / 255.0, axis=0)  # 정규화 및 채널 차원 추가
             input_data = input_data.astype(input_dtype)
+
+            # print(f"Input shape expected: {input_details[0]['shape']}")
+            # print(f"Input data shape: {input_data.shape}")
 
             # 모델 예측
             interpreter.set_tensor(input_details[0]['index'], input_data)
