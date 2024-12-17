@@ -1,8 +1,3 @@
-import threading  
-import time
-import csv
-from datetime import datetime
-
 import threading
 import time
 import csv
@@ -13,13 +8,16 @@ class UpdateHandler:
     def __init__(self, serial_comm, image_path, model_handler, csv_name):
         self.serial_comm = serial_comm
         self.dehumid_info = {"temp": "25°C", "humid": "40%", "status": "대기중"}
-        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "대기중", "shoes_type": "운동화", "remaining_time": 3}
+        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "대기중", "shoes_type": "운동화", "remaining_time": 999}
         self.image_path = image_path  # 이미지 경로 추가
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
         self.data = {}
         self.csv_file = csv_name
         self.model_handler = model_handler  # ModelHandler 인스턴스를 전달받음
         self.init_csv_file()
+        self.heating_on = False  # 히터가 켜져 있는지 여부
+        self.drying_stopped = False  # 건조 중지 여부
+        self.target_temp = None
 
     def init_csv_file(self):
         # CSV 파일 초기화: 파일이 없으면 헤더를 추가
@@ -65,7 +63,7 @@ class UpdateHandler:
             self.update_thread = threading.Thread(target=self.update_data_loop, daemon=True)
             self.update_thread.start()
 
-            self.update_dry_time()  # 남은 시간 갱신 시작
+            # self.update_dry_time()  # 남은 시간 갱신 시작
         else:
             print("Serial communication not initialized. Skipping data update.")
 
@@ -104,6 +102,10 @@ class UpdateHandler:
                     self.save_to_csv()
                     # 1초 대기
                     time.sleep(1)
+
+                    self.check_heating()
+                    self.update_dry_time()  # 남은 시간 갱신 시작
+
             except Exception as e:
                 print(f"데이터 업데이트 중 오류 발생: {e}")
 
@@ -123,13 +125,47 @@ class UpdateHandler:
 
     def update_dry_time(self):
         """남은 시간을 1초씩 갱신"""
-        if self.dry_info["remaining_time"] > 0:
+        if self.dry_info["remaining_time"] > 0 and not self.drying_stopped:
             self.dry_info["remaining_time"] -= 1
             if self.callbacks["dry"]:
                 self.callbacks["dry"](self.dry_info)  # UI 갱신을 위한 콜백 호출
-            # 1초 후 다시 호출 (재귀적 호출이 아니라 Timer로 비동기적 갱신)
-            threading.Timer(1, self.update_dry_time).start()  # 1초 후 다시 갱신
         else:
             self.dry_info["status"] = "건조 완료"
             if self.callbacks["dry"]:
                 self.callbacks["dry"](self.dry_info)  # 상태 변경 후 UI 갱신
+            self.target_temp = None
+
+    def check_heating(self):
+        """히터 제어 및 온도 체크"""
+        if self.target_temp:
+            current_temp = float(self.dry_info["temp"].replace("°C", ""))
+
+            if current_temp > self.target_temp and self.heating_on:
+                self.heating_on = False
+                print("온도가 너무 높아서 히터를 끕니다.")
+                command = "stop " + " ".join(map(str, [8]))
+                self.serial_comm.ser.write(command.encode())
+                print(f"Sent stop command for pins {[8]} to Arduino.")
+                threading.Timer(60, self.check_temperature).start()  # 1분 후 온도 다시 확인
+            elif current_temp < self.target_temp and not self.heating_on:
+                self.heating_on = True
+                print("온도가 낮아서 히터를 켭니다.")
+                for pin in [8]:
+                    self.serial_comm.ser.write(str(pin).encode())
+                    print(f"Sent pin {pin} to Arduino.")
+                    time.sleep(5)  # 각 핀 전송 후 1초 대기
+
+    def check_temperature(self):
+        """히터 끄고 1분 후 온도 재확인"""
+        if self.target_temp:
+            current_temp = float(self.dry_info["temp"].replace("°C", ""))
+            if current_temp > self.target_temp:
+                print("온도가 여전히 너무 높습니다. 다시 1분 기다립니다.")
+                threading.Timer(60, self.check_temperature).start()
+            else:
+                print("온도가 적정 범위에 도달했습니다. 히터를 다시 켭니다.")
+                self.heating_on = True
+                for pin in [8]:
+                    self.serial_comm.ser.write(str(pin).encode())
+                    print(f"Sent pin {pin} to Arduino.")
+                    time.sleep(5)  # 각 핀 전송 후 1초 대기

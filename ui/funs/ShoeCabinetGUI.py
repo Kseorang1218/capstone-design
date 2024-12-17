@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import font
+from tkinter import font, messagebox
 from PIL import Image, ImageTk
 import time
 import numpy as np
+
 
 class FontManager:
     """글꼴 관리를 위한 클래스"""
@@ -181,7 +182,7 @@ class DryFrame(BaseFrame):
         self.dry_pins = [3, 7, 8, 11, 13]
         
         self.class_probs = None
-        self.options = ["고무", "면", "가죽", "스웨이드", "AI 모드"]
+        self.options = ["고무", "면(합성피혁)", "가죽", "스웨이드", "AI 모드"]
         
         self.labels = {}
         self.shoe_types = {0: "부츠", 1: "구두", 2: "슬리퍼", 3: "운동화"}
@@ -206,6 +207,28 @@ class DryFrame(BaseFrame):
         
         # 초기 버튼 설정
         self.create_initial_buttons()
+
+    def get_time_temp(self, target):
+        if target == "구두":
+            return 65, 32
+        elif target == "부츠":
+            return 70, 32
+        elif target == "운동화":
+            return 75, 42
+        elif target == "슬리퍼":
+            return 55, 40
+        elif target == "고무":
+            return 55, 40
+        elif target == "면(합성피혁)":
+            return 75, 45
+        elif target == "스웨이드":
+            return 50, 28
+        elif target == "가죽":
+            return 70, 30
+        else:
+            print("알 수 없는 재질입니다. 기본값(면)으로 건조합니다.")
+            return 75, 45
+
 
     def create_initial_buttons(self):
         self.create_button("건조 코스 고르기", self.create_slider)
@@ -275,11 +298,10 @@ class DryFrame(BaseFrame):
             self.material_slider.destroy()
             self.selected_material_label.destroy()
 
-            self.start_dryig()
+            self.start_dryig_based_on_material(selected_material)
 
     def set_ai_auto_mode(self):
         """AI 자동 모드 설정"""
-        
         # LED 키기
         try:
             for pin in [11]:
@@ -318,9 +340,9 @@ class DryFrame(BaseFrame):
     def check_shoe(self):
         """신발 확인"""
         print(self.update_handler.dry_info["shoes_type"])
-
+        
         self.clear_buttons()
-        self.start_dryig()
+        self.start_dryig_based_on_shoetype()
 
     def retry_recognition(self):
         """신발 재인식"""
@@ -344,6 +366,7 @@ class DryFrame(BaseFrame):
             print(f"Sent stop command for pins {pins_to_turn_off} to Arduino.")
 
             self.update_handler.dry_info["status"] = "대기중"
+            self.update_handler.dry_info["remaining_time"] = 0
             if self.update_handler.callbacks["dry"]:
                 self.update_handler.callbacks["dry"](self.update_handler.dry_info)
         except Exception as e:
@@ -353,22 +376,76 @@ class DryFrame(BaseFrame):
         self.create_initial_buttons()
 
 
-    def start_dryig(self):
+    def start_dryig_based_on_shoetype(self):
         """건조 시작 동작"""
         try:
             for pin in self.dry_pins:
                 self.serial_port.write(str(pin).encode())
                 print(f"Sent pin {pin} to Arduino.")
                 time.sleep(5)  # 각 핀 전송 후 1초 대기
-
+            
             self.update_handler.dry_info["status"] = "건조중"
             if self.update_handler.callbacks["dry"]:
                 self.update_handler.callbacks["dry"](self.update_handler.dry_info)
+
+            target_time, target_temp = self.get_time_temp(self.update_handler.dry_info["shoes_type"])
+            self.update_handler.target_temp = target_temp
+            self.update_handler.heating_on = True
+            self.update_handler.drying_stopped = False
+            self.update_handler.dry_info["remaining_time"] = target_time * 60
+            
         except Exception as e:
             print(f"제습 시작 중 오류 발생: {e}")
 
         self.clear_buttons()
         self.create_button("건조 중지하기", self.stop_drying)
+        self.create_button("건조 완료", self.complete_drying)
+        if self.update_handler.dry_info["remaining_time"] == 0:
+            self.complete_drying()
+
+    def start_dryig_based_on_material(self, material):
+        """건조 시작 동작"""
+        self.update_handler.dry_info["shoes_type"] = material
+        try:
+            for pin in self.dry_pins:
+                self.serial_port.write(str(pin).encode())
+                print(f"Sent pin {pin} to Arduino.")
+                time.sleep(5)  # 각 핀 전송 후 1초 대기
+            
+            self.update_handler.dry_info["status"] = "건조중"
+            if self.update_handler.callbacks["dry"]:
+                self.update_handler.callbacks["dry"](self.update_handler.dry_info)
+
+            target_time, target_temp = self.get_time_temp(self.update_handler.dry_info["shoes_type"])
+            self.update_handler.target_temp = target_temp
+            self.update_handler.heating_on = True
+            self.update_handler.drying_stopped = False
+            self.update_handler.dry_info["remaining_time"] = target_time * 60
+            
+        except Exception as e:
+            print(f"제습 시작 중 오류 발생: {e}")
+
+        self.clear_buttons()
+        self.create_button("건조 중지하기", self.stop_drying)
+        self.create_button("건조 완료", self.complete_drying)
+        if self.update_handler.dry_info["remaining_time"] == 0:
+            self.complete_drying()
+
+    def complete_drying(self):
+        if self.update_handler.dry_info["remaining_time"] != 0:
+            messagebox.showinfo("건조 상태", "아직 건조가 완료되지 않았습니다!")
+            return
+        else:
+            messagebox.showinfo("건조 상태", "건조 완료")
+            pins_to_turn_off = self.dry_pins
+            command = "stop " + " ".join(map(str, pins_to_turn_off))
+            self.serial_port.write(command.encode())
+            print(f"Sent stop command for pins {pins_to_turn_off} to Arduino.")
+
+            if self.update_handler.callbacks["dry"]:
+                self.update_handler.callbacks["dry"](self.update_handler.dry_info)
+            self.clear_buttons()
+            self.create_initial_buttons()
 
     def update_labels(self, data):
         """건조 정보 라벨 업데이트"""
