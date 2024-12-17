@@ -1,8 +1,7 @@
 # main.py
 
 from funs.utils import load_yaml
-# from funs.ShoeCabinetGUI import ShoeCabinetGUI
-from funs.ShoeCabinetGUI2 import ShoeCabinetGUI
+from funs.ShoeCabinetGUI import ShoeCabinetGUI
 from funs.UpdateHandler import UpdateHandler
 from funs.ModelHandler import ModelHandler
 

@@ -82,7 +82,7 @@ class UpdateHandler:
                     # Debug: 받은 데이터 확인
                     # print(f"수신 데이터: {data}")
 
-                    # sensor1 데이터 -> 제습 프레임 업데이트
+                    # sensor3 데이터 -> 제습 프레임 업데이트
                     if "sensor1" in data:
                         sensor1 = data["sensor1"]
                         self.dehumid_info["temp"] = f"{sensor1['temperature']}°C"
