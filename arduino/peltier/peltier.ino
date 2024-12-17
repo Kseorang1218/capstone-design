@@ -72,19 +72,28 @@ void loop() {
     String input = Serial.readStringUntil('\n');
     input.trim();
 
-    if (input.startsWith("stop")) {
-      handleStopCommand(input);
-    } else if (input.toInt() > 0) {
-      controlPin(input.toInt());
-    } else if (input == "0") {
+    // 숫자 입력 처리 (핀 활성화)
+    int pin = input.toInt();
+    if (pin > 0) {
+      controlPin(pin);
+    } 
+    // 모든 핀 끄기
+    else if (input == "0") {
       turnAllOff();
-    } else {
+    } 
+    // stop 명령 처리
+    else if (input.startsWith("stop")) {
+      handleStopCommand(input);
+    } 
+    // 입력 오류
+    else {
       Serial.println("Invalid command. Enter a valid pin number or '0' to turn all off.");
     }
   }
 
   delay(2000);  // 2초 간격
 }
+
 
 // 특정 핀 활성화 함수
 void controlPin(int pin) {
