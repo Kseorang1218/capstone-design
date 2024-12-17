@@ -1,24 +1,26 @@
 #include <ArduinoJson.h>
 #include "DHT.h"
 
-#define DHTPIN1 9  // DHT22 핀
-#define DHTPIN2 6  // DHT11 첫 번째 핀
-#define DHTPIN3 11  // DHT11 두 번째 핀
+#define DHTPIN1 5  // DHT11 핀(제습)
+#define DHTPIN2 9  // DHT22 첫 번째 핀(건조)
+#define DHTPIN3 6  // DHT22 두 번째 핀(히터)
 #define DHTTYPE22 DHT22
 #define DHTTYPE11 DHT11
 
-DHT dht1(DHTPIN1, DHTTYPE22); // DHT22
-DHT dht2(DHTPIN2, DHTTYPE11); // DHT11
+// 3 펠티어
+// 7 히터팬
+// 8 히터
+// 11 led
+// 12 uv
+// 13 환풍
+// 5, 9, 6 제습(11), 건조(22), 히터(22) 측 센서
+
+DHT dht1(DHTPIN1, DHTTYPE11); // DHT11
+DHT dht2(DHTPIN2, DHTTYPE22); // DHT22
 DHT dht3(DHTPIN3, DHTTYPE11); // DHT11
 
-// pin map
-// 3: 펠티어
-// 6, 9, 11 온습도
-// 8, 7: 히터
-// 10: LED
-// 12: UV
-// 13: 환풍팬
-const int controlPins[] = {3, 7, 8, 10, 12, 13};
+// 제어 핀 정의
+const int controlPins[] = {3, 7, 8, 11, 12, 13};
 const int numPins = sizeof(controlPins) / sizeof(controlPins[0]);
 int pinStates[numPins] = {0, 0, 0, 0, 0, 0};
 
@@ -70,42 +72,60 @@ void loop() {
     String input = Serial.readStringUntil('\n');
     input.trim();
 
-    if (input == "0") {
-      // 모든 핀을 LOW로 설정
-      for (int i = 0; i < numPins; i++) {
-        pinStates[i] = 0;
-        digitalWrite(controlPins[i], LOW);
-      }
-      Serial.println("All pins set to LOW.");
+    if (input.startsWith("stop")) {
+      handleStopCommand(input);
+    } else if (input.toInt() > 0) {
+      controlPin(input.toInt());
+    } else if (input == "0") {
+      turnAllOff();
     } else {
-      int inputPin = input.toInt();  // 입력 값을 정수로 변환
-      if (inputPin > 0) {
-        // 입력한 핀이 제어 핀에 속하는지 확인
-        bool validPin = false;
-        for (int i = 0; i < numPins; i++) {
-          if (controlPins[i] == inputPin) {
-            pinStates[i] = 1;  // 상태를 HIGH로 설정
-            digitalWrite(controlPins[i], HIGH);
-            Serial.print("Pin ");
-            Serial.print(controlPins[i]);
-            Serial.println(" set to HIGH.");
-            validPin = true;
-            break;
-          }
-        }
-        if (!validPin) {
-          Serial.println("Invalid pin. Enter a valid control pin number (3, 6, 7, 10, 11, 12) or 0 to turn all off.");
-        }
-      } else {
-        Serial.println("Invalid input. Enter a valid control pin number or 0 to turn all off.");
-      }
+      Serial.println("Invalid command. Enter a valid pin number or '0' to turn all off.");
     }
   }
 
-  // 핀 상태 유지
-  for (int i = 0; i < numPins; i++) {
-    digitalWrite(controlPins[i], pinStates[i]);
-  }
-
   delay(2000);  // 2초 간격
+}
+
+// 특정 핀 활성화 함수
+void controlPin(int pin) {
+  for (int i = 0; i < numPins; i++) {
+    if (controlPins[i] == pin) {
+      pinStates[i] = 1;
+      digitalWrite(controlPins[i], HIGH);
+      Serial.print("Pin ");
+      Serial.print(pin);
+      Serial.println(" set to HIGH.");
+      return;
+    }
+  }
+  Serial.println("Invalid pin. Pin not in control list.");
+}
+
+void handleStopCommand(String command) {
+  command.remove(0, 5);  // "stop " 제거
+  while (command.length() > 0) {
+    int spaceIndex = command.indexOf(' ');
+    String pinString = (spaceIndex == -1) ? command : command.substring(0, spaceIndex);
+    command = (spaceIndex == -1) ? "" : command.substring(spaceIndex + 1);
+
+    int pin = pinString.toInt();
+    for (int i = 0; i < numPins; i++) {
+      if (controlPins[i] == pin) {
+        pinStates[i] = 0;
+        digitalWrite(controlPins[i], LOW);
+        Serial.print("Pin ");
+        Serial.print(pin);
+        Serial.println(" set to LOW.");
+      }
+    }
+  }
+}
+
+// 모든 핀 끄기 함수
+void turnAllOff() {
+  for (int i = 0; i < numPins; i++) {
+    pinStates[i] = 0;
+    digitalWrite(controlPins[i], LOW);
+  }
+  Serial.println("All pins set to LOW.");
 }
