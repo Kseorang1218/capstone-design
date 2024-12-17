@@ -12,8 +12,8 @@ class UpdateHandler:
     """시리얼 데이터 업데이트를 관리하는 클래스"""
     def __init__(self, serial_comm, image_path, model_handler, csv_name):
         self.serial_comm = serial_comm
-        self.dehumid_info = {"temp": "25°C", "humid": "40%"}
-        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "건조중", "shoes_type": "운동화", "remaining_time": 999999999}
+        self.dehumid_info = {"temp": "25°C", "humid": "40%", "status": "대기중"}
+        self.dry_info = {"temp": "35°C", "humid": "20%", "status": "대기중", "shoes_type": "운동화", "remaining_time": 3}
         self.image_path = image_path  # 이미지 경로 추가
         self.callbacks = {"dehumid": None, "dry": None, "image": None}  # 이미지 업데이트 콜백 추가
         self.data = {}

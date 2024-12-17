@@ -133,6 +133,10 @@ class DehumidFrame(BaseFrame):
                 self.serial_port.write(str(pin).encode())
                 print(f"Sent pin {pin} to Arduino.")
                 time.sleep(5)  # 각 핀 전송 후 1초 대기
+
+            self.update_handler.dehumid_info["status"] = "제습중"
+            if self.update_handler.callbacks["dehumid"]:
+                self.update_handler.callbacks["dehumid"](self.update_handler.dehumid_info)
         except Exception as e:
             print(f"제습 시작 중 오류 발생: {e}")
 
@@ -143,6 +147,10 @@ class DehumidFrame(BaseFrame):
             command = "stop " + " ".join(map(str, pins_to_turn_off))
             self.serial_port.write(command.encode())
             print(f"Sent stop command for pins {pins_to_turn_off} to Arduino.")
+
+            self.update_handler.dehumid_info["status"] = "대기중"
+            if self.update_handler.callbacks["dehumid"]:
+                self.update_handler.callbacks["dehumid"](self.update_handler.dehumid_info)
         except Exception as e:
             print(f"제습 중지 중 오류 발생: {e}")
 
@@ -334,6 +342,10 @@ class DryFrame(BaseFrame):
             command = "stop " + " ".join(map(str, pins_to_turn_off))
             self.serial_port.write(command.encode())
             print(f"Sent stop command for pins {pins_to_turn_off} to Arduino.")
+
+            self.update_handler.dry_info["status"] = "대기중"
+            if self.update_handler.callbacks["dry"]:
+                self.update_handler.callbacks["dry"](self.update_handler.dry_info)
         except Exception as e:
             print(f"제습 중지 중 오류 발생: {e}")
 
@@ -348,6 +360,10 @@ class DryFrame(BaseFrame):
                 self.serial_port.write(str(pin).encode())
                 print(f"Sent pin {pin} to Arduino.")
                 time.sleep(5)  # 각 핀 전송 후 1초 대기
+
+            self.update_handler.dry_info["status"] = "건조중"
+            if self.update_handler.callbacks["dry"]:
+                self.update_handler.callbacks["dry"](self.update_handler.dry_info)
         except Exception as e:
             print(f"제습 시작 중 오류 발생: {e}")
 
