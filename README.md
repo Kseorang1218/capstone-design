@@ -1,88 +1,35 @@
-# Project Title
+# Smart Shoe Rack: 2024-2 창의공학종합설계
 
-2024-2 창의공학종합설계   
-지도교수 이동찬
+### 지도교수: 이동찬
 
-## Getting Started
+---
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+## 프로젝트 소개
 
-### Prerequisites
+제습과 건조를 동시에 수행할 수 있는 스마트 신발장을 개발하는 프로젝트입니다. 주요 기능은 다음과 같습니다:
 
-What things you need to install the software and how to install them
+1. **효율적인 제습 및 건조**
+   - 펠티어 소자를 활용하여 저온부는 제습에 사용하고, 고온부의 열은 히터 열과 결합하여 건조에 사용합니다.
+2. **신발 종류 자동 판별**
+   - 딥러닝 모델을 통해 신발의 종류를 자동으로 판별하고, 이에 적합한 건조 코스를 설정합니다.
+3. **사용자 선택 가능**
+   - 사용자가 직접 신발의 재질이나 종류를 선택할 수 있습니다.
 
-```
-Give examples
-```
+---
 
-### Installing
+## 팀 소개
 
-A step by step series of examples that tell you how to get a development env running
+**6조 핫이슈**
+- 팀장 강병현
+- 팀원 서효빈
+- 팀원 김휘연
+- 팀원 이서윤
+- 팀원 김서랑랑
 
-Say what the step will be
+---
 
-```
-Give the example
-```
+## 감사의 말
 
-And repeat
+- 이 프로젝트에 영감을 준 모든 분들께 감사드립니다.
+- 도움을 주신 모든 팀원들과 교수님께 감사드립니다.
 
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
