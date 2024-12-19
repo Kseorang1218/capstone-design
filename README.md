@@ -1,4 +1,4 @@
-# Smart Shoe Rack: 2024-2 창의공학종합설계
+# Customized Shoecase Manufacturing with Peltier Module: 2024-2 창의공학종합설계
 
 ### 지도교수: 이동찬
 
