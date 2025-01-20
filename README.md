@@ -1,5 +1,8 @@
 # Customized Shoecase Manufacturing with Peltier Module: 2024-2 창의공학종합설계
 
+### 소속: 기계정보공학과
+
+
 ### 지도교수: 이동찬
 
 
